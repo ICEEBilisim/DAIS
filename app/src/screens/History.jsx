@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../supabaseClient';
 import { Clock, Activity, PlayCircle, HeartPulse, Square } from 'lucide-react-native';
 import { Audio } from 'expo-av';
@@ -7,17 +8,20 @@ import { Audio } from 'expo-av';
 export default function History({ session }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [playingId, setPlayingId] = useState(null);
   const [sound, setSound] = useState(null);
 
-  useEffect(() => {
-    fetchRecords();
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecords();
+      return () => {
+        if (sound) {
+          sound.unloadAsync();
+        }
+      };
+    }, [session])
+  );
 
   const fetchRecords = async () => {
     if (!session) return;
@@ -34,6 +38,12 @@ export default function History({ session }) {
       console.error("Error fetching history:", error);
     }
     setLoading(false);
+    setRefreshing(false);
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchRecords();
   };
 
   const formatDate = (dateString) => {
@@ -92,6 +102,9 @@ export default function History({ session }) {
           data={records}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 20 }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#06b6d4"]} />
+          }
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
