@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+librosa
+noisereduce
+soundfile
+scipy
+imageio-ffmpeg
+numpy
