@@ -81,6 +81,12 @@ const Dashboard = ({ session }) => {
         body: formData,
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const serverError = errorData.detail || errorData.message || `Sunucu hatası: ${response.status}`;
+        throw new Error(serverError);
+      }
+
       const result = await response.json();
       
       if (result.status === 'error') {
@@ -101,8 +107,10 @@ const Dashboard = ({ session }) => {
         setCleanAudioUrl(URL.createObjectURL(cleanBlob));
       }
     } catch (err) {
-      console.error(err);
-      setError('Ses analiz sunucusuna ulaşılamadı. Python API\'sinin çalıştığından emin olun.');
+      console.error("API Hatası:", err);
+      // Backend'den gelen spesifik bir hataysa onu göster, yoksa genel bağlantı hatası ver
+      const errorMsg = err.message || 'Ses analiz sunucusuna ulaşılamadı.';
+      setError(`Hata: ${errorMsg}`);
       setAudioBlob(null);
       setAudioUrl(null);
     }
