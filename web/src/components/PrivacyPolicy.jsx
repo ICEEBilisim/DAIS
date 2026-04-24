@@ -31,12 +31,12 @@ const PrivacyPolicy = () => {
         <p className="mb-4 text-slate-600">
           <strong>Mikrofon İzni (RECORD_AUDIO):</strong> Uygulamamız, ana işlevi olan kalp atış hızı (BPM) analizini gerçekleştirebilmek için cihazınızın mikrofonuna erişim izni talep eder.
           <br/>
-          <strong>Sağlık Verileri:</strong> Uygulama içerisine kendi isteğinizle girdiğiniz tansiyon, glukoz ve kalp ritmi verileriniz toplanmaktadır.
+          <strong>Sağlık Verileri:</strong> Uygulama içerisine kendi isteğinizle girdiğiniz tansiyon, glukoz ve kalp ritmi verileriniz tamamen anonim olarak toplanmaktadır. Hiçbir şekilde isminiz, kimliğiniz veya sizi tanımlayabilecek herhangi bir kişisel bilgi talep edilmemekte ve saklanmamaktadır.
         </p>
 
         <h4 className="text-md font-bold text-slate-800 mt-6 mb-2">2. Verilerin Kullanımı</h4>
         <p className="mb-4 text-slate-600">
-          Mikrofonunuz aracılığıyla kaydedilen ses dosyaları, yalnızca dijital sinyal işleme algoritmalarımızla kalp atış hızınızı (nabzınızı) hesaplamak amacıyla kullanılır. Elde edilen analiz sonuçları (BPM) ve varsa yüklenen ham ses kayıtları, sadece sizin geçmiş sağlık kayıtlarınızı görebilmeniz amacıyla güvenli bulut sunucularımızda saklanır.
+          Mikrofonunuz aracılığıyla kaydedilen ses dosyaları, yalnızca dijital sinyal işleme algoritmalarımızla kalp atış hızınızı (nabzınızı) hesaplamak amacıyla kullanılır. Elde edilen anonim analiz sonuçları (BPM) ve yüklenen ham ses kayıtları, akademik bir çalışmada kullanılmak üzere yapay zeka derin öğrenme (deep learning) modellerinin eğitiminde kullanılacaktır. Verileriniz tamamen bilimsel araştırmalara ve yapay zeka gelişimine katkı sağlamak amacıyla anonim olarak işlenmektedir.
         </p>
 
         <h4 className="text-md font-bold text-slate-800 mt-6 mb-2">3. Veri Paylaşımı</h4>
@@ -58,7 +58,7 @@ const PrivacyPolicy = () => {
         <p className="mb-4 text-slate-600">
           Bu gizlilik politikası hakkında sorularınız veya endişeleriniz varsa, bizimle iletişime geçebilirsiniz:
           <br/>
-          E-posta: info@iceebilisim.com
+          E-posta: dais@iceebilisim.com
           <br/>
           Web: dais.iceebilisim.com
         </p>
