@@ -126,10 +126,13 @@ export default function Dashboard({ navigation, session }) {
       const response = await fetch('https://dais-zjoc.onrender.com/analyze-audio', {
         method: 'POST',
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const serverError = errorData.detail || errorData.message || `Sunucu hatası: ${response.status}`;
+        throw new Error(serverError);
+      }
 
       const result = await response.json();
       
@@ -139,16 +142,19 @@ export default function Dashboard({ navigation, session }) {
       } else {
         setCalculatedBpm(result.bpm);
         
-        // Save base64 to local file
-        const cleanPath = FileSystem.documentDirectory + Date.now() + '_clean.wav';
-        await FileSystem.writeAsStringAsync(cleanPath, result.clean_audio_b64, {
-          encoding: 'base64',
-        });
-        setCleanAudioUri(cleanPath);
+        if (result.clean_audio_b64) {
+          // Save base64 to local file
+          const cleanPath = FileSystem.documentDirectory + Date.now() + '_clean.wav';
+          await FileSystem.writeAsStringAsync(cleanPath, result.clean_audio_b64, {
+            encoding: 'base64',
+          });
+          setCleanAudioUri(cleanPath);
+        }
       }
     } catch (err) {
       console.error(err);
-      Alert.alert("Hata", "Ses analiz sunucusuna ulaşılamadı. Python API'sinin çalıştığından emin olun.");
+      const errorMsg = err.message || 'Ses analiz sunucusuna ulaşılamadı.';
+      Alert.alert("API Hatası", errorMsg);
       setAudioUri(null);
     }
     setAnalyzing(false);
