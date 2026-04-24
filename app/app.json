@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "app",
-    "slug": "app",
+    "name": "DAIS",
+    "slug": "dais",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,14 +13,20 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifier": "com.iceebilisim.dais",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.iceebilisim.dais",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,6 +38,11 @@
           "microphonePermission": "D.A.I.S uygulamasının kalp sesinizi kaydedebilmesi için mikrofona ihtiyacı var."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d7406e2e-a996-4023-9718-264633ba3c87"
+      }
+    }
   }
 }

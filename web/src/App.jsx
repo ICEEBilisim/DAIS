@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
 import History from './components/History';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -69,6 +70,11 @@ function App() {
               <h1 className="text-2xl font-bold text-cyan-600 tracking-tight">D.A.I.S</h1>
               <p className="text-xs text-slate-500">ICEE Bilişim <span className="text-orange-500 font-medium">| dais.iceebilisim.com</span></p>
             </div>
+            <div>
+              <Link to="/privacy-policy" className="text-sm font-medium text-slate-500 hover:text-cyan-600 transition-colors">
+                Gizlilik Politikası
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -86,6 +92,10 @@ function App() {
               element={
                 !session || !hasProfile ? <Navigate to="/" /> : <History session={session} />
               } 
+            />
+            <Route 
+              path="/privacy-policy" 
+              element={<PrivacyPolicy />} 
             />
           </Routes>
         </main>
