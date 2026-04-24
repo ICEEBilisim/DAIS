@@ -74,8 +74,8 @@ const Dashboard = ({ session }) => {
       const formData = new FormData();
       formData.append('file', blob, 'recording.webm');
 
-      // VITE_API_URL ortam değişkeni varsa onu, yoksa yerel adresi kullan
-      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+      // VITE_API_URL ortam değişkeni varsa onu, yoksa Render üretim adresini kullan
+      const API_URL = import.meta.env.VITE_API_URL || 'https://dais-zjoc.onrender.com';
       const response = await fetch(`${API_URL}/analyze-audio`, {
         method: 'POST',
         body: formData,
