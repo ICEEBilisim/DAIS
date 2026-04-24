@@ -74,7 +74,9 @@ const Dashboard = ({ session }) => {
       const formData = new FormData();
       formData.append('file', blob, 'recording.webm');
 
-      const response = await fetch('http://127.0.0.1:8000/analyze-audio', {
+      // VITE_API_URL ortam değişkeni varsa onu, yoksa yerel adresi kullan
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${API_URL}/analyze-audio`, {
         method: 'POST',
         body: formData,
       });
