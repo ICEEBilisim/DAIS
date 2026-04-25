@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { supabase } from '../supabaseClient';
 import { UserCircle } from 'lucide-react-native';
 
-export default function Onboarding({ session, onComplete }) {
+export default function Onboarding({ session, onComplete, navigation }) {
   const [bird, setBird] = useState('');
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
@@ -84,6 +84,15 @@ export default function Onboarding({ session, onComplete }) {
           ) : (
             <Text style={styles.submitButtonText}>Kaydet ve Başla</Text>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={{ marginTop: 20, alignItems: 'center' }}
+          onPress={() => navigation.navigate('PrivacyPolicy')}
+        >
+          <Text style={{ fontSize: 13, color: '#64748b', textDecorationLine: 'underline' }}>
+            Gizlilik Politikası'nı Okuyun
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

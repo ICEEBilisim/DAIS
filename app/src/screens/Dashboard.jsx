@@ -60,6 +60,15 @@ export default function Dashboard({ navigation, session }) {
     }
     
     try {
+      if (Platform.OS === 'ios') {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+      }
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: uriToPlay },
         { shouldPlay: true }
@@ -92,6 +101,8 @@ export default function Dashboard({ navigation, session }) {
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: true,
           playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
         });
       }
 

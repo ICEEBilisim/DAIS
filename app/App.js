@@ -6,6 +6,7 @@ import { supabase } from './src/supabaseClient';
 import Onboarding from './src/screens/Onboarding';
 import Dashboard from './src/screens/Dashboard';
 import History from './src/screens/History';
+import PrivacyPolicy from './src/screens/PrivacyPolicy';
 
 const Stack = createNativeStackNavigator();
 
@@ -75,17 +76,31 @@ export default function App() {
         }}
       >
         {!session || !hasProfile ? (
-          <Stack.Screen 
-            name="Onboarding" 
-            options={{ title: 'D.A.I.S - Kayıt' }}
-          >
-            {(props) => <Onboarding {...props} session={session} onComplete={() => setHasProfile(true)} />}
-          </Stack.Screen>
+          <>
+            <Stack.Screen 
+              name="Onboarding" 
+              options={{ title: 'D.A.I.S - Kayıt' }}
+            >
+              {(props) => <Onboarding {...props} session={session} onComplete={() => setHasProfile(true)} />}
+            </Stack.Screen>
+            <Stack.Screen 
+              name="PrivacyPolicy" 
+              component={PrivacyPolicy}
+              options={{ headerShown: false }} 
+            />
+          </>
         ) : (
           <>
             <Stack.Screen 
               name="Dashboard" 
-              options={{ title: 'D.A.I.S - Ana Ekran' }}
+              options={{ 
+                headerTitle: () => (
+                  <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#06b6d4' }}>D.A.I.S</Text>
+                    <Text style={{ fontSize: 11, color: '#64748b', marginTop: -2 }}>dais.iceebilisim.com</Text>
+                  </View>
+                )
+              }}
             >
               {(props) => <Dashboard {...props} session={session} />}
             </Stack.Screen>
@@ -95,6 +110,11 @@ export default function App() {
             >
               {(props) => <History {...props} session={session} />}
             </Stack.Screen>
+            <Stack.Screen 
+              name="PrivacyPolicy" 
+              component={PrivacyPolicy}
+              options={{ headerShown: false }} 
+            />
           </>
         )}
       </Stack.Navigator>
