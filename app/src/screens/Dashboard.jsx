@@ -137,25 +137,23 @@ export default function Dashboard({ navigation, session }) {
   const analyzeAudio = async (uri) => {
     setAnalyzing(true);
     try {
-      const formData = new FormData();
-      formData.append('file', {
-        uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
-        name: 'recording.m4a',
-        type: 'audio/m4a'
-      });
+      const uploadResponse = await FileSystem.uploadAsync(
+        'https://dais-production.up.railway.app/analyze-audio',
+        uri,
+        {
+          fieldName: 'file',
+          httpMethod: 'POST',
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+          mimeType: 'audio/m4a'
+        }
+      );
 
-      const response = await fetch('https://dais-production.up.railway.app/analyze-audio', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const serverError = errorData.detail || errorData.message || `Sunucu hatası: ${response.status}`;
+      if (uploadResponse.status !== 200) {
+        const serverError = `Sunucu hatası: ${uploadResponse.status}`;
         throw new Error(serverError);
       }
 
-      const result = await response.json();
+      const result = JSON.parse(uploadResponse.body);
       
       if (result.status === 'error') {
         Alert.alert("Hata", result.message || 'Nabız alınamadı. Lütfen tekrar deneyin.');
