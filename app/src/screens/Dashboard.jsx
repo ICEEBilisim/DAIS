@@ -22,6 +22,7 @@ export default function Dashboard({ navigation, session }) {
   
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentPlayingUri, setCurrentPlayingUri] = useState(null);
   
   const timerRef = useRef(null);
   const recordingRef = useRef(null);
@@ -39,7 +40,8 @@ export default function Dashboard({ navigation, session }) {
   }, [sound]);
 
   const playRecordedAudio = async (uriToPlay) => {
-    if (sound) {
+    // Aynı ses dosyasını çalıyor veya durduruyorsak:
+    if (sound && currentPlayingUri === uriToPlay) {
       if (isPlaying) {
         await sound.pauseAsync();
         setIsPlaying(false);
@@ -50,12 +52,20 @@ export default function Dashboard({ navigation, session }) {
       return;
     }
     
+    // Farklı bir ses dosyasına geçiyorsak öncekini kapat:
+    if (sound) {
+      await sound.unloadAsync();
+      setSound(null);
+      setIsPlaying(false);
+    }
+    
     try {
       const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: uriToPlay || audioUri },
+        { uri: uriToPlay },
         { shouldPlay: true }
       );
       setSound(newSound);
+      setCurrentPlayingUri(uriToPlay);
       setIsPlaying(true);
 
       newSound.setOnPlaybackStatusUpdate((status) => {
@@ -341,13 +351,13 @@ export default function Dashboard({ navigation, session }) {
           {audioUri && !isRecording && !analyzing && (
             <View style={{ marginTop: 16, width: '100%' }}>
               <TouchableOpacity style={styles.playRecordedBtn} onPress={() => playRecordedAudio(audioUri)}>
-                {isPlaying ? (
+                {isPlaying && currentPlayingUri === audioUri ? (
                   <Square color="#10b981" size={20} style={{ marginRight: 8 }} />
                 ) : (
                   <PlayCircle color="#10b981" size={20} style={{ marginRight: 8 }} />
                 )}
                 <Text style={styles.playRecordedText}>
-                  {isPlaying ? "Durdur" : "Ham Sesi Dinle"}
+                  {isPlaying && currentPlayingUri === audioUri ? "Durdur" : "Ham Sesi Dinle"}
                 </Text>
               </TouchableOpacity>
               
@@ -362,13 +372,13 @@ export default function Dashboard({ navigation, session }) {
                     )}
                   </View>
                   <TouchableOpacity style={[styles.playRecordedBtn, { backgroundColor: '#e0f2fe', borderColor: '#bae6fd', marginTop: 0 }]} onPress={() => playRecordedAudio(cleanAudioUri)}>
-                    {isPlaying ? (
+                    {isPlaying && currentPlayingUri === cleanAudioUri ? (
                       <Square color="#0284c7" size={20} style={{ marginRight: 8 }} />
                     ) : (
                       <PlayCircle color="#0284c7" size={20} style={{ marginRight: 8 }} />
                     )}
                     <Text style={[styles.playRecordedText, { color: '#0284c7' }]}>
-                      {isPlaying ? "Durdur" : "Net Sesi Dinle"}
+                      {isPlaying && currentPlayingUri === cleanAudioUri ? "Durdur" : "Net Sesi Dinle"}
                     </Text>
                   </TouchableOpacity>
                 </View>
