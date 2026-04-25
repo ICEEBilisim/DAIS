@@ -123,7 +123,7 @@ export default function Dashboard({ navigation, session }) {
         type: 'audio/m4a'
       });
 
-      const response = await fetch('https://dais-zjoc.onrender.com/analyze-audio', {
+      const response = await fetch('https://dais-production.up.railway.app/analyze-audio', {
         method: 'POST',
         body: formData,
       });

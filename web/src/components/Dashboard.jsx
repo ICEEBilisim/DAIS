@@ -75,8 +75,9 @@ const Dashboard = ({ session }) => {
       formData.append('file', blob, 'recording.webm');
 
       // VITE_API_URL ortam değişkeni varsa onu, yoksa Render üretim adresini kullan
-      // Sabit Render adresi kullan (Test için environment variable iptal edildi)
-      const API_URL = 'https://dais-zjoc.onrender.com';
+      // Railway'den alacağımız ortam değişkenini (VITE_API_URL) kullanacağız
+      // Şimdilik boş bırakıyoruz, Vercel/Render iptal.
+      const API_URL = import.meta.env.VITE_API_URL || 'https://dais-production.up.railway.app';
       const response = await fetch(`${API_URL}/analyze-audio`, {
         method: 'POST',
         body: formData,
