@@ -45,12 +45,29 @@ async def analyze_audio(file: UploadFile = File(...)):
 
         # Convert to WAV using ffmpeg explicitly
         wav_path = temp_path + ".wav"
-        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+        
+        # Railway/Docker (Linux) üzerinde sistem ffmpeg'i daha kararlı çalışır.
+        # Windows üzerinde ise imageio_ffmpeg.get_ffmpeg_exe() kullanabiliriz.
+        if os.name == 'nt':
+            import imageio_ffmpeg
+            ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+        else:
+            ffmpeg_exe = "ffmpeg"
+            
         try:
-            subprocess.run([ffmpeg_exe, "-y", "-i", temp_path, wav_path], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(
+                [ffmpeg_exe, "-y", "-i", temp_path, wav_path], 
+                check=True, 
+                stdout=subprocess.DEVNULL, 
+                stderr=subprocess.PIPE
+            )
+        except subprocess.CalledProcessError as e:
+            os.remove(temp_path)
+            error_details = e.stderr.decode('utf-8', errors='replace') if e.stderr else str(e)
+            raise HTTPException(status_code=400, detail=f"Ses dosyasi donusturulemedi: {error_details}")
         except Exception as e:
             os.remove(temp_path)
-            raise HTTPException(status_code=400, detail=f"Ses dosyasi donusturulemedi: {e}")
+            raise HTTPException(status_code=400, detail=f"Ses dosyasi donusturulemedi (Genel Hata): {e}")
 
         # 1. Load audio
         try:
