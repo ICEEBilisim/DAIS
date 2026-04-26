@@ -98,7 +98,26 @@ async def analyze_audio(file: UploadFile = File(...)):
         clean_temp_path = temp_path.replace(ext, "_clean.wav")
         sf.write(clean_temp_path, filtered_audio, sr)
         
-        # 5. Read clean wav and encode to Base64
+        # 5. Extract Waveform Peaks (60 bins)
+        waveform_bins = 60
+        chunk_size = len(filtered_audio) // waveform_bins
+        waveform_data = []
+        if chunk_size > 0:
+            for i in range(waveform_bins):
+                chunk = filtered_audio[i * chunk_size : (i + 1) * chunk_size]
+                peak = float(np.max(np.abs(chunk)))
+                waveform_data.append(peak)
+            
+            # Normalize between 0.05 and 1.0
+            max_peak = max(waveform_data) if len(waveform_data) > 0 else 1.0
+            if max_peak > 0:
+                waveform_data = [round(max(0.05, p / max_peak), 3) for p in waveform_data]
+            else:
+                waveform_data = [0.05] * waveform_bins
+        else:
+            waveform_data = [0.05] * waveform_bins
+        
+        # 6. Read clean wav and encode to Base64
         with open(clean_temp_path, "rb") as f:
             wav_bytes = f.read()
             clean_b64 = base64.b64encode(wav_bytes).decode('utf-8')
@@ -112,7 +131,8 @@ async def analyze_audio(file: UploadFile = File(...)):
         return {
             "status": "success",
             "bpm": int(bpm),
-            "clean_audio_b64": clean_b64
+            "clean_audio_b64": clean_b64,
+            "waveform_data": waveform_data
         }
         
     except Exception as e:
