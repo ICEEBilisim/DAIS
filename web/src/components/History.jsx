@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { ArrowLeft, Activity, Clock, PlayCircle, HeartPulse } from 'lucide-react';
+import { ArrowLeft, Activity, Clock, PlayCircle, HeartPulse, Fingerprint } from 'lucide-react';
+import WaveformPlayer from './WaveformPlayer';
 
 const History = ({ session }) => {
   const [records, setRecords] = useState([]);
@@ -45,6 +46,14 @@ const History = ({ session }) => {
           Ana Ekrana Dön
         </Link>
         <h2 className="text-xl font-bold text-slate-800 ml-6">Ölçüm Geçmişiniz</h2>
+      </div>
+
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+        <div className="flex items-center text-slate-600">
+          <Fingerprint className="w-5 h-5 mr-2 text-cyan-600" />
+          <span className="text-sm font-medium">Kullanıcı Kimliği (ID):</span>
+        </div>
+        <span className="text-sm font-mono font-bold text-slate-800">{session?.user?.id}</span>
       </div>
 
       {loading ? (
@@ -118,11 +127,12 @@ const History = ({ session }) => {
                   <audio controls src={record.audio_url} className="h-8 w-full md:w-64" />
                 </div>
                 {record.clean_audio_url && (
-                  <div className="bg-cyan-50 p-2 rounded-xl border border-cyan-100 w-full">
-                    <span className="text-xs font-medium text-cyan-700 block text-center mb-1">
-                      İşlenmiş Net Ses
-                    </span>
-                    <audio controls src={record.clean_audio_url} className="h-8 w-full md:w-64" />
+                  <div className="w-full md:w-64 mt-2">
+                    <WaveformPlayer 
+                      audioUrl={record.clean_audio_url}
+                      waveformData={record.waveform_data || []}
+                      bpm={record.bpm}
+                    />
                   </div>
                 )}
               </div>

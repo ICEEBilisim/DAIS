@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { Mic, Square, Activity, Save, History as HistoryIcon, AlertCircle, CheckCircle2, HeartPulse } from 'lucide-react';
+import WaveformPlayer from './WaveformPlayer';
 
 const Dashboard = ({ session }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -18,6 +19,7 @@ const Dashboard = ({ session }) => {
   const [cleanAudioUrl, setCleanAudioUrl] = useState(null);
   const [cleanAudioBlob, setCleanAudioBlob] = useState(null);
   const [calculatedBpm, setCalculatedBpm] = useState(null);
+  const [waveformData, setWaveformData] = useState([]);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -107,6 +109,7 @@ const Dashboard = ({ session }) => {
         const cleanBlob = new Blob([arrayBuffer], { type: 'audio/wav' });
         setCleanAudioBlob(cleanBlob);
         setCleanAudioUrl(URL.createObjectURL(cleanBlob));
+        setWaveformData(result.waveform_data || []);
       }
     } catch (err) {
       console.error("API Hatası:", err);
@@ -195,7 +198,8 @@ const Dashboard = ({ session }) => {
         audio_url: publicUrl,
         clean_audio_url: cleanPublicUrl,
         bpm: calculatedBpm,
-        recording_duration: recordingTime
+        recording_duration: recordingTime,
+        waveform_data: waveformData.length > 0 ? waveformData : null
       };
 
       if (hasGlucose) recordData.glucose_level = parseFloat(glucose);
@@ -216,6 +220,7 @@ const Dashboard = ({ session }) => {
       setCleanAudioBlob(null);
       setCleanAudioUrl(null);
       setCalculatedBpm(null);
+      setWaveformData([]);
       setGlucose('');
       setSystolicBp('');
       setDiastolicBp('');
@@ -311,17 +316,11 @@ const Dashboard = ({ session }) => {
                 </div>
                 
                 {cleanAudioUrl && (
-                  <div className="bg-cyan-50 border border-cyan-100 p-3 rounded-xl shadow-sm">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-semibold text-cyan-700">İşlenmiş Net Ses</span>
-                      {calculatedBpm && (
-                        <span className="text-xs font-bold bg-cyan-200 text-cyan-800 px-2 py-0.5 rounded-full">
-                          Nabız: {calculatedBpm} BPM
-                        </span>
-                      )}
-                    </div>
-                    <audio src={cleanAudioUrl} controls className="w-full h-8" />
-                  </div>
+                  <WaveformPlayer 
+                    audioUrl={cleanAudioUrl} 
+                    waveformData={waveformData} 
+                    bpm={calculatedBpm} 
+                  />
                 )}
               </div>
             )}

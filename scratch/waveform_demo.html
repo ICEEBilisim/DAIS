@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waveform Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .waveform-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            width: 100%;
+            gap: 2px;
+        }
+        .bar {
+            flex: 1;
+            background-color: #e2e8f0; /* slate-200 */
+            border-radius: 9999px;
+            transition: background-color 0.1s linear;
+        }
+        .bar.active {
+            background-color: #06b6d4; /* cyan-500 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 w-full max-w-md">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-sm font-bold text-cyan-600">İşlenmiş Net Ses</h3>
+                <p class="text-xs text-slate-500">Nabız: 78 BPM</p>
+            </div>
+            <button id="playBtn" class="bg-cyan-50 text-cyan-600 p-2 rounded-full hover:bg-cyan-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </button>
+        </div>
+
+        <div class="waveform-container" id="waveform">
+            <!-- Bars will be generated here -->
+        </div>
+        
+        <div class="flex justify-between mt-2">
+            <span class="text-xs text-slate-400 font-mono" id="currentTime">00:00</span>
+            <span class="text-xs text-slate-400 font-mono">00:15</span>
+        </div>
+    </div>
+
+    <script>
+        // Dummy waveform data (normalized 0.1 to 1.0)
+        const peaks = [
+            0.1, 0.2, 0.4, 0.8, 1.0, 0.6, 0.3, 0.1, 0.1, 0.2, 
+            0.1, 0.2, 0.5, 0.9, 0.8, 0.4, 0.2, 0.1, 0.2, 0.3,
+            0.1, 0.1, 0.3, 0.7, 1.0, 0.5, 0.2, 0.1, 0.1, 0.2,
+            0.1, 0.2, 0.4, 0.8, 0.9, 0.6, 0.3, 0.1, 0.1, 0.2,
+            0.1, 0.2, 0.5, 0.9, 1.0, 0.4, 0.2, 0.1, 0.2, 0.3,
+            0.1, 0.1, 0.3, 0.7, 0.8, 0.5, 0.2, 0.1, 0.1, 0.2
+        ];
+
+        const waveformEl = document.getElementById('waveform');
+        const bars = [];
+
+        // Generate bars
+        peaks.forEach(peak => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            // Height is a percentage of the container (max 60px)
+            bar.style.height = `${Math.max(10, peak * 100)}%`;
+            waveformEl.appendChild(bar);
+            bars.push(bar);
+        });
+
+        const playBtn = document.getElementById('playBtn');
+        const timeEl = document.getElementById('currentTime');
+        let isPlaying = false;
+        let progress = 0; // 0 to 1
+        let animationId;
+        const totalDuration = 15000; // 15 seconds
+        let startTime = 0;
+
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                // Pause
+                isPlaying = false;
+                cancelAnimationFrame(animationId);
+                playBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+            } else {
+                // Play
+                isPlaying = true;
+                startTime = performance.now() - (progress * totalDuration);
+                playBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+                animate();
+            }
+        });
+
+        function animate() {
+            if (!isPlaying) return;
+
+            const now = performance.now();
+            progress = (now - startTime) / totalDuration;
+
+            if (progress >= 1) {
+                progress = 1;
+                isPlaying = false;
+                playBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+            } else {
+                animationId = requestAnimationFrame(animate);
+            }
+
+            // Update UI
+            updateBars(progress);
+            updateTime(progress * 15);
+            
+            if(progress >= 1) progress = 0; // reset after done
+        }
+
+        function updateBars(prog) {
+            const activeCount = Math.floor(prog * bars.length);
+            bars.forEach((bar, index) => {
+                if (index <= activeCount) {
+                    bar.classList.add('active');
+                } else {
+                    bar.classList.remove('active');
+                }
+            });
+        }
+
+        function updateTime(seconds) {
+            const s = Math.floor(seconds);
+            const ms = Math.floor((seconds - s) * 100);
+            timeEl.textContent = `00:${s.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>

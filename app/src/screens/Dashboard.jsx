@@ -4,6 +4,7 @@ import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../supabaseClient';
 import { Mic, Square, Activity, Save, History as HistoryIcon, PlayCircle, HeartPulse } from 'lucide-react-native';
+import WaveformPlayer from '../components/WaveformPlayer';
 
 export default function Dashboard({ navigation, session }) {
   const [recording, setRecording] = useState();
@@ -19,6 +20,7 @@ export default function Dashboard({ navigation, session }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [calculatedBpm, setCalculatedBpm] = useState(null);
   const [cleanAudioUri, setCleanAudioUri] = useState(null);
+  const [waveformData, setWaveformData] = useState([]);
   
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -168,6 +170,7 @@ export default function Dashboard({ navigation, session }) {
             encoding: 'base64',
           });
           setCleanAudioUri(cleanPath);
+          setWaveformData(result.waveform_data || []);
         }
       }
     } catch (err) {
@@ -269,7 +272,8 @@ export default function Dashboard({ navigation, session }) {
         audio_url: publicUrl,
         clean_audio_url: cleanPublicUrl,
         bpm: calculatedBpm,
-        recording_duration: recordingTime
+        recording_duration: recordingTime,
+        waveform_data: waveformData.length > 0 ? waveformData : null
       };
 
       if (hasGlucose) recordData.glucose_level = parseFloat(glucose);
@@ -294,6 +298,7 @@ export default function Dashboard({ navigation, session }) {
       setAudioUri(null);
       setCleanAudioUri(null);
       setCalculatedBpm(null);
+      setWaveformData([]);
       setGlucose('');
       setSystolicBp('');
       setDiastolicBp('');
@@ -371,26 +376,11 @@ export default function Dashboard({ navigation, session }) {
               </TouchableOpacity>
               
               {cleanAudioUri && (
-                <View style={styles.cleanAudioBox}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#0369a1' }}>İşlenmiş Net Ses</Text>
-                    {calculatedBpm && (
-                      <View style={{ backgroundColor: '#bae6fd', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 }}>
-                        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#0369a1' }}>Nabız: {calculatedBpm} BPM</Text>
-                      </View>
-                    )}
-                  </View>
-                  <TouchableOpacity style={[styles.playRecordedBtn, { backgroundColor: '#e0f2fe', borderColor: '#bae6fd', marginTop: 0 }]} onPress={() => playRecordedAudio(cleanAudioUri)}>
-                    {isPlaying && currentPlayingUri === cleanAudioUri ? (
-                      <Square color="#0284c7" size={20} style={{ marginRight: 8 }} />
-                    ) : (
-                      <PlayCircle color="#0284c7" size={20} style={{ marginRight: 8 }} />
-                    )}
-                    <Text style={[styles.playRecordedText, { color: '#0284c7' }]}>
-                      {isPlaying && currentPlayingUri === cleanAudioUri ? "Durdur" : "Net Sesi Dinle"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                <WaveformPlayer 
+                  audioUri={cleanAudioUri}
+                  waveformData={waveformData}
+                  bpm={calculatedBpm}
+                />
               )}
             </View>
           )}

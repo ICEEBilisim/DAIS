@@ -2,8 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../supabaseClient';
-import { Clock, Activity, PlayCircle, HeartPulse, Square } from 'lucide-react-native';
+import { Clock, Activity, PlayCircle, HeartPulse, Square, Fingerprint } from 'lucide-react-native';
 import { Audio } from 'expo-av';
+import WaveformPlayer from '../components/WaveformPlayer';
 
 export default function History({ session }) {
   const [records, setRecords] = useState([]);
@@ -102,6 +103,17 @@ export default function History({ session }) {
           data={records}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 20 }}
+          ListHeaderComponent={
+            <View style={styles.userIdContainer}>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Fingerprint size={18} color="#06b6d4" />
+                <Text style={styles.userIdLabel}>Kullanıcı Kimliği (ID):</Text>
+              </View>
+              <Text style={styles.userIdValue} numberOfLines={1} ellipsizeMode="middle">
+                {session?.user?.id}
+              </Text>
+            </View>
+          }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#06b6d4"]} />
           }
@@ -165,20 +177,12 @@ export default function History({ session }) {
                 </View>
 
                 {item.clean_audio_url && (
-                  <View style={[styles.audioRow, { marginTop: 8 }]}>
-                    <TouchableOpacity 
-                      style={[styles.playBtn, {backgroundColor: '#e0f2fe'}, playingId === item.id + '_clean' && {backgroundColor: '#0284c7'}]}
-                      onPress={() => playSound(item.id + '_clean', item.clean_audio_url)}
-                    >
-                      {playingId === item.id + '_clean' ? (
-                        <Square size={16} color="#fff" />
-                      ) : (
-                        <PlayCircle size={16} color="#0284c7" />
-                      )}
-                      <Text style={[styles.playBtnText, {color: '#0284c7'}, playingId === item.id + '_clean' && {color: '#fff'}]}>
-                        Net Sesi Dinle
-                      </Text>
-                    </TouchableOpacity>
+                  <View style={{ marginTop: 8 }}>
+                    <WaveformPlayer 
+                      audioUri={item.clean_audio_url}
+                      waveformData={item.waveform_data || []}
+                      bpm={item.bpm}
+                    />
                   </View>
                 )}
               </View>
@@ -210,5 +214,8 @@ const styles = StyleSheet.create({
   playBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ecfeff', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
   playBtnActive: { backgroundColor: '#06b6d4' },
   playBtnText: { marginLeft: 8, fontWeight: '600', color: '#06b6d4', fontSize: 13 },
-  durationText: { fontSize: 12, color: '#94a3b8', fontWeight: '500' }
+  durationText: { fontSize: 12, color: '#94a3b8', fontWeight: '500' },
+  userIdContainer: { backgroundColor: '#f1f5f9', padding: 12, borderRadius: 12, marginBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' },
+  userIdLabel: { fontSize: 13, fontWeight: '600', color: '#475569', marginLeft: 6 },
+  userIdValue: { fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold', color: '#0f172a', maxWidth: '40%' }
 });
