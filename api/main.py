@@ -85,18 +85,10 @@ async def analyze_audio(file: UploadFile = File(...)):
             os.remove(temp_path)
             return {"status": "error", "message": "Ses seviyesi cok dusuk, nabiz alinamadi."}
 
-        # 2. Noise Reduction & Heartbeat Isolation
-        reduced_noise = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.8)
-        
-        # Apply bandpass filter to isolate heartbeat frequencies (20Hz - 400Hz)
-        # (Yüksek frekansların eklenmesi telefon hoparlörlerinde duyulabilirliği artırır)
-        filtered_audio = butter_bandpass_filter(reduced_noise, 20.0, 400.0, sr, order=3)
-        
-        # Amplify the heartbeat
-        filtered_audio = librosa.util.normalize(filtered_audio) * 0.95
-        
-        # 3. BPM Calculation
-        tempo, beat_frames = librosa.beat.beat_track(y=filtered_audio, sr=sr)
+        # 2. BPM Calculation on RAW Audio
+        # Sesi sadece normalize ederek BPM bulmaya calisiyoruz (filtrelemeden once)
+        normalized_raw = librosa.util.normalize(y)
+        tempo, beat_frames = librosa.beat.beat_track(y=normalized_raw, sr=sr)
         bpm = float(tempo[0]) if isinstance(tempo, (list, tuple, np.ndarray)) else float(tempo)
         
         # Adjust BPM bounds
@@ -105,13 +97,34 @@ async def analyze_audio(file: UploadFile = File(...)):
         elif bpm < 40:
             bpm = bpm * 2
 
-        # If beat frames are extremely sparse (less than 3)
-        # We reject the audio as it doesn't contain a clear enough heartbeat.
+        # Fallback: Eğer ham sesten bulunamadıysa bir de hafif filtrelenmiş halinden deneyelim
         if len(beat_frames) < 3 or bpm <= 0:
-            os.remove(temp_path)
-            if os.path.exists(wav_path):
-                os.remove(wav_path)
-            return {"status": "error", "message": "Kalp atışı tespit edilemedi. Lütfen sessiz bir ortamda, mikrofonu göğsünüze tam temas ettirerek tekrar deneyin."}
+            fallback_audio = butter_bandpass_filter(normalized_raw, 20.0, 500.0, sr, order=2)
+            tempo_fb, beat_frames_fb = librosa.beat.beat_track(y=fallback_audio, sr=sr)
+            bpm_fb = float(tempo_fb[0]) if isinstance(tempo_fb, (list, tuple, np.ndarray)) else float(tempo_fb)
+            if bpm_fb > 200:
+                bpm_fb = bpm_fb / 2
+            elif bpm_fb < 40:
+                bpm_fb = bpm_fb * 2
+            
+            if len(beat_frames_fb) >= 3 and bpm_fb > 0:
+                bpm = bpm_fb
+                beat_frames = beat_frames_fb
+            else:
+                os.remove(temp_path)
+                if os.path.exists(wav_path):
+                    os.remove(wav_path)
+                return {"status": "error", "message": "Kalp atışı tespit edilemedi. Lütfen sessiz bir ortamda, mikrofonu göğsünüze tam temas ettirerek tekrar deneyin."}
+
+        # 3. Noise Reduction & Filtering for Playback ONLY
+        reduced_noise = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.8)
+        
+        # Apply bandpass filter to isolate heartbeat frequencies (20Hz - 400Hz)
+        # (Yüksek frekansların eklenmesi telefon hoparlörlerinde duyulabilirliği artırır)
+        filtered_audio = butter_bandpass_filter(reduced_noise, 20.0, 400.0, sr, order=3)
+        
+        # Amplify the heartbeat
+        filtered_audio = librosa.util.normalize(filtered_audio) * 0.95
             
         print(f"DSP finished. BPM calculated: {bpm} (Beat frames found: {len(beat_frames)})")
 
