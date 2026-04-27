@@ -104,10 +104,13 @@ async def analyze_audio(file: UploadFile = File(...)):
         elif bpm < 40:
             bpm = bpm * 2
 
-        # If beat frames are extremely sparse or 0
-        # Instead of throwing an error, we will use a fallback value so the user isn't stuck.
-        if len(beat_frames) == 0 or bpm <= 0:
-            bpm = 72.0 # Realistic resting heart rate fallback
+        # If beat frames are extremely sparse (less than 3)
+        # We reject the audio as it doesn't contain a clear enough heartbeat.
+        if len(beat_frames) < 3 or bpm <= 0:
+            os.remove(temp_path)
+            if os.path.exists(wav_path):
+                os.remove(wav_path)
+            return {"status": "error", "message": "Kalp atışı tespit edilemedi. Lütfen sessiz bir ortamda, mikrofonu göğsünüze tam temas ettirerek tekrar deneyin."}
             
         print(f"DSP finished. BPM calculated: {bpm} (Beat frames found: {len(beat_frames)})")
 

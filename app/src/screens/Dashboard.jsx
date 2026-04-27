@@ -41,6 +41,12 @@ export default function Dashboard({ navigation, session }) {
     };
   }, [sound]);
 
+  useEffect(() => {
+    if (isRecording && recordingTime >= 30) {
+      stopRecording();
+    }
+  }, [recordingTime, isRecording]);
+
   const playRecordedAudio = async (uriToPlay) => {
     // Aynı ses dosyasını çalıyor veya durduruyorsak:
     if (sound && currentPlayingUri === uriToPlay) {
@@ -336,7 +342,7 @@ export default function Dashboard({ navigation, session }) {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>1. Kalp Sesi Kaydı</Text>
-        <Text style={styles.desc}>En az 30 saniyelik kalp sesinizi kaydedin. (Min: 15 sn)</Text>
+        <Text style={styles.desc}>Lütfen telefonunuzun veya bilgisayarınızın mikrofonunu göğsünüze yaklaştırarak 15 ile 30 saniye arası kalp sesinizi kaydedin. (Minimum 15 saniye zorunludur.)</Text>
         
         <View style={styles.recordBox}>
           <Text style={[styles.timer, isRecording && styles.timerActive]}>
@@ -349,9 +355,13 @@ export default function Dashboard({ navigation, session }) {
               <Text style={styles.recordBtnText}>Kaydı Başlat</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.stopBtn} onPress={stopRecording}>
+            <TouchableOpacity 
+              style={[styles.stopBtn, recordingTime < 15 && { opacity: 0.5 }]} 
+              onPress={stopRecording}
+              disabled={recordingTime < 15}
+            >
               <Square color="#fff" size={24} style={{ marginRight: 8 }} />
-              <Text style={styles.recordBtnText}>Kaydı Bitir</Text>
+              <Text style={styles.recordBtnText}>Kaydı Bitir {recordingTime < 15 ? `(${15 - recordingTime})` : ''}</Text>
             </TouchableOpacity>
           )}
 

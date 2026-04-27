@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { supabase } from './src/supabaseClient';
 import Onboarding from './src/screens/Onboarding';
+import Dashboard from './src/screens/Dashboard';
+import History from './src/screens/History';
+import PrivacyPolicy from './src/screens/PrivacyPolicy';
+import Guide from './src/screens/Guide';
 import Dashboard from './src/screens/Dashboard';
 import History from './src/screens/History';
 import PrivacyPolicy from './src/screens/PrivacyPolicy';
@@ -93,14 +97,25 @@ export default function App() {
           <>
             <Stack.Screen 
               name="Dashboard" 
-              options={{ 
+              options={({ navigation }) => ({ 
                 headerTitle: () => (
-                  <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#06b6d4' }}>D.A.I.S</Text>
-                    <Text style={{ fontSize: 11, color: '#64748b', marginTop: -2 }}>dais.iceebilisim.com</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Image source={require('./assets/icon.png')} style={{ width: 28, height: 28, borderRadius: 6, marginRight: 8 }} />
+                    <View style={{ justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#06b6d4' }}>D.A.I.S</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                        <Image source={require('./assets/icee_icon.jpg')} style={{ width: 12, height: 12, borderRadius: 2, marginRight: 4 }} />
+                        <Text style={{ fontSize: 11, color: '#64748b' }}>dais.iceebilisim.com</Text>
+                      </View>
+                    </View>
                   </View>
+                ),
+                headerRight: () => (
+                  <TouchableOpacity onPress={() => navigation.navigate('Guide')} style={{ backgroundColor: '#ecfeff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#cffafe' }}>
+                    <Text style={{ color: '#0e7490', fontSize: 12, fontWeight: 'bold' }}>Uygulama Rehberi</Text>
+                  </TouchableOpacity>
                 )
-              }}
+              })}
             >
               {(props) => <Dashboard {...props} session={session} />}
             </Stack.Screen>
@@ -114,6 +129,11 @@ export default function App() {
               name="PrivacyPolicy" 
               component={PrivacyPolicy}
               options={{ headerShown: false }} 
+            />
+            <Stack.Screen 
+              name="Guide" 
+              component={Guide}
+              options={{ title: 'Uygulama Rehberi' }} 
             />
           </>
         )}

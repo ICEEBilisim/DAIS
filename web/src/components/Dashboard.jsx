@@ -31,6 +31,12 @@ const Dashboard = ({ session }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (isRecording && recordingTime >= 30) {
+      stopRecording();
+    }
+  }, [recordingTime, isRecording]);
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -272,7 +278,7 @@ const Dashboard = ({ session }) => {
         {/* Audio Recording Section */}
         <div>
           <h3 className="text-base font-semibold text-slate-800 mb-2">1. Kalp Sesi Kaydı</h3>
-          <p className="text-sm text-slate-500 mb-4">Lütfen telefonunuzun veya bilgisayarınızın mikrofonunu göğsünüze yaklaştırarak en az 30 saniyelik kalp sesinizi kaydedin. (Minimum 15 saniye zorunludur.)</p>
+          <p className="text-sm text-slate-500 mb-4">Lütfen telefonunuzun veya bilgisayarınızın mikrofonunu göğsünüze yaklaştırarak 15 ile 30 saniye arası kalp sesinizi kaydedin. (Minimum 15 saniye zorunludur.)</p>
           
           <div className="bg-slate-50 rounded-xl p-6 flex flex-col items-center justify-center border border-slate-200">
             <div className={`text-4xl font-mono font-bold mb-6 ${isRecording ? 'text-orange-500' : 'text-slate-700'}`}>
@@ -293,10 +299,11 @@ const Dashboard = ({ session }) => {
                 <button
                   type="button"
                   onClick={stopRecording}
-                  className="flex items-center justify-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-full transition-colors shadow-md animate-pulse"
+                  disabled={recordingTime < 15}
+                  className={`flex items-center justify-center font-medium py-3 px-6 rounded-full transition-colors shadow-md ${recordingTime < 15 ? 'bg-slate-400 text-white cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white animate-pulse'}`}
                 >
                   <Square className="w-5 h-5 mr-2" />
-                  Kaydı Bitir
+                  Kaydı Bitir {recordingTime < 15 ? `(${15 - recordingTime}s)` : ''}
                 </button>
               )}
             </div>
