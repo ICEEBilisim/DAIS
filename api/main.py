@@ -88,8 +88,9 @@ async def analyze_audio(file: UploadFile = File(...)):
         # 2. Noise Reduction & Heartbeat Isolation
         reduced_noise = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.8)
         
-        # Apply bandpass filter to isolate heartbeat frequencies (20Hz - 200Hz)
-        filtered_audio = butter_bandpass_filter(reduced_noise, 20.0, 200.0, sr, order=3)
+        # Apply bandpass filter to isolate heartbeat frequencies (20Hz - 400Hz)
+        # (Yüksek frekansların eklenmesi telefon hoparlörlerinde duyulabilirliği artırır)
+        filtered_audio = butter_bandpass_filter(reduced_noise, 20.0, 400.0, sr, order=3)
         
         # Amplify the heartbeat
         filtered_audio = librosa.util.normalize(filtered_audio) * 0.95
