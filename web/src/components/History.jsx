@@ -119,17 +119,11 @@ const History = ({ session }) => {
                 )}
               </div>
 
-              <div className="w-full md:w-auto flex-shrink-0 flex flex-col space-y-2 mt-4 md:mt-0">
-                <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 w-full">
-                  <span className="text-xs font-medium text-slate-500 block text-center mb-1">
-                    Ham Kayıt ({record.recording_duration} sn)
-                  </span>
-                  <audio controls src={record.audio_url} className="h-8 w-full md:w-64" />
-                </div>
-                {record.clean_audio_url && (
-                  <div className="w-full md:w-64 mt-2">
+              <div className="w-full md:w-auto flex-shrink-0 flex flex-col mt-4 md:mt-0">
+                {record.audio_url && record.waveform_data && (
+                  <div className="w-full md:w-64">
                     <WaveformPlayer 
-                      audioUrl={record.clean_audio_url}
+                      audioUrl={record.audio_url}
                       waveformData={record.waveform_data || []}
                       bpm={record.bpm}
                     />

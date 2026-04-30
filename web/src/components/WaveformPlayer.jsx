@@ -64,7 +64,7 @@ const WaveformPlayer = ({ audioUrl, waveformData = [], bpm }) => {
       
       <div className="flex items-center justify-between mb-3">
         <div>
-          <span className="text-xs font-bold text-cyan-800 tracking-wide uppercase">İşlenmiş Net Ses</span>
+          <span className="text-xs font-bold text-cyan-800 tracking-wide uppercase">Ham Ses Kaydı</span>
         </div>
         {bpm && (
           <span className="text-xs font-bold bg-cyan-200 text-cyan-800 px-3 py-1 rounded-full shadow-sm">

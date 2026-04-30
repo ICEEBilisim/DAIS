@@ -159,27 +159,11 @@ export default function History({ session }) {
               </View>
               
               <View style={styles.audioControlsContainer}>
-                <View style={styles.audioRow}>
-                  <TouchableOpacity 
-                    style={[styles.playBtn, playingId === item.id + '_raw' && styles.playBtnActive]}
-                    onPress={() => playSound(item.id + '_raw', item.audio_url)}
-                  >
-                    {playingId === item.id + '_raw' ? (
-                      <Square size={16} color="#fff" />
-                    ) : (
-                      <PlayCircle size={16} color={playingId === item.id + '_raw' ? "#fff" : "#06b6d4"} />
-                    )}
-                    <Text style={[styles.playBtnText, playingId === item.id + '_raw' && {color: '#fff'}]}>
-                      Ham Sesi Dinle
-                    </Text>
-                  </TouchableOpacity>
-                  <Text style={styles.durationText}>{item.recording_duration} sn kayıt</Text>
-                </View>
-
-                {item.clean_audio_url && (
+                <Text style={[styles.durationText, { marginBottom: 8 }]}>{item.recording_duration} sn kayıt</Text>
+                {!!item.audio_url && !!item.waveform_data && (
                   <View style={{ marginTop: 8 }}>
                     <WaveformPlayer 
-                      audioUri={item.clean_audio_url}
+                      audioUri={item.audio_url}
                       waveformData={item.waveform_data || []}
                       bpm={item.bpm}
                     />

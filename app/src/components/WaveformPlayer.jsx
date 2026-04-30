@@ -74,7 +74,7 @@ export default function WaveformPlayer({ audioUri, waveformData = [], bpm }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>İŞLENMİŞ NET SES</Text>
+        <Text style={styles.title}>HAM SES KAYDI</Text>
         {bpm && (
           <View style={styles.bpmBadge}>
             <Text style={styles.bpmText}>Nabız: {bpm} BPM</Text>

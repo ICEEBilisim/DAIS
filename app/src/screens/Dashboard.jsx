@@ -19,7 +19,6 @@ export default function Dashboard({ navigation, session }) {
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [calculatedBpm, setCalculatedBpm] = useState(null);
-  const [cleanAudioUri, setCleanAudioUri] = useState(null);
   const [waveformData, setWaveformData] = useState([]);
   
   const [sound, setSound] = useState(null);
@@ -129,7 +128,6 @@ export default function Dashboard({ navigation, session }) {
       setIsRecording(true);
       setRecordingTime(0);
       setAudioUri(null);
-      setCleanAudioUri(null);
       setCalculatedBpm(null);
 
       timerRef.current = setInterval(() => {
@@ -168,16 +166,7 @@ export default function Dashboard({ navigation, session }) {
         setAudioUri(null);
       } else {
         setCalculatedBpm(result.bpm);
-        
-        if (result.clean_audio_b64) {
-          // Save base64 to local file
-          const cleanPath = FileSystem.documentDirectory + Date.now() + '_clean.wav';
-          await FileSystem.writeAsStringAsync(cleanPath, result.clean_audio_b64, {
-            encoding: 'base64',
-          });
-          setCleanAudioUri(cleanPath);
-          setWaveformData(result.waveform_data || []);
-        }
+        setWaveformData(result.waveform_data || []);
       }
     } catch (err) {
       console.error(err);
@@ -253,33 +242,24 @@ export default function Dashboard({ navigation, session }) {
         .from('recordings')
         .getPublicUrl(fileName);
 
-      // 2. Upload Clean Audio if exists
-      let cleanPublicUrl = null;
-      if (cleanAudioUri) {
-        const cleanResponse = await fetch(cleanAudioUri);
-        const cleanBlob = await cleanResponse.blob();
-        const cleanArrayBuffer = await new Response(cleanBlob).arrayBuffer();
-        
-        const cleanFileName = `clean/${session.user.id}/${Date.now()}_clean.wav`;
-        const { error: cleanUploadError } = await supabase.storage
-          .from('recordings')
-          .upload(cleanFileName, cleanArrayBuffer, {
-            contentType: 'audio/wav'
-          });
-          
-        if (!cleanUploadError) {
-          cleanPublicUrl = supabase.storage.from('recordings').getPublicUrl(cleanFileName).data.publicUrl;
-        }
+      // 2. Fetch IP Address
+      let ip_address = null;
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        ip_address = ipData.ip;
+      } catch (e) {
+        console.error("IP alınamadı:", e);
       }
 
       // 3. Save Data to Supabase
       const recordData = {
         user_id: session.user.id,
         audio_url: publicUrl,
-        clean_audio_url: cleanPublicUrl,
         bpm: calculatedBpm,
         recording_duration: recordingTime,
-        waveform_data: waveformData.length > 0 ? waveformData : null
+        waveform_data: waveformData.length > 0 ? waveformData : null,
+        ip_address: ip_address
       };
 
       if (hasGlucose) recordData.glucose_level = parseFloat(glucose);
@@ -302,7 +282,6 @@ export default function Dashboard({ navigation, session }) {
 
       Alert.alert("Başarılı", "Verileriniz başarıyla kaydedildi.");
       setAudioUri(null);
-      setCleanAudioUri(null);
       setCalculatedBpm(null);
       setWaveformData([]);
       setGlucose('');
@@ -372,26 +351,17 @@ export default function Dashboard({ navigation, session }) {
             </View>
           )}
 
-          {audioUri && !isRecording && !analyzing && (
+          {!!audioUri && !isRecording && !analyzing && (
             <View style={{ marginTop: 16, width: '100%' }}>
-              <TouchableOpacity style={styles.playRecordedBtn} onPress={() => playRecordedAudio(audioUri)}>
-                {isPlaying && currentPlayingUri === audioUri ? (
-                  <Square color="#10b981" size={20} style={{ marginRight: 8 }} />
-                ) : (
-                  <PlayCircle color="#10b981" size={20} style={{ marginRight: 8 }} />
-                )}
-                <Text style={styles.playRecordedText}>
-                  {isPlaying && currentPlayingUri === audioUri ? "Durdur" : "Ham Sesi Dinle"}
-                </Text>
-              </TouchableOpacity>
-              
-              {cleanAudioUri && (
-                <WaveformPlayer 
-                  audioUri={cleanAudioUri}
-                  waveformData={waveformData}
-                  bpm={calculatedBpm}
-                />
-              )}
+                {waveformData.length > 0 && (
+                  <View style={{ marginTop: 8 }}>
+                    <WaveformPlayer 
+                      audioUri={audioUri}
+                      waveformData={waveformData}
+                      bpm={calculatedBpm}
+                    />
+                  </View>
+                )}     
             </View>
           )}
         </View>

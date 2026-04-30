@@ -16,8 +16,6 @@ const Dashboard = ({ session }) => {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [cleanAudioUrl, setCleanAudioUrl] = useState(null);
-  const [cleanAudioBlob, setCleanAudioBlob] = useState(null);
   const [calculatedBpm, setCalculatedBpm] = useState(null);
   const [waveformData, setWaveformData] = useState([]);
   
@@ -105,16 +103,6 @@ const Dashboard = ({ session }) => {
         setAudioUrl(null);
       } else {
         setCalculatedBpm(result.bpm);
-        // Decode Base64 to Blob
-        const audioData = atob(result.clean_audio_b64);
-        const arrayBuffer = new ArrayBuffer(audioData.length);
-        const view = new Uint8Array(arrayBuffer);
-        for (let i = 0; i < audioData.length; i++) {
-          view[i] = audioData.charCodeAt(i);
-        }
-        const cleanBlob = new Blob([arrayBuffer], { type: 'audio/wav' });
-        setCleanAudioBlob(cleanBlob);
-        setCleanAudioUrl(URL.createObjectURL(cleanBlob));
         setWaveformData(result.waveform_data || []);
       }
     } catch (err) {
@@ -185,27 +173,24 @@ const Dashboard = ({ session }) => {
         .from('recordings')
         .getPublicUrl(fileName);
 
-      // Upload Clean Audio if exists
-      let cleanPublicUrl = null;
-      if (cleanAudioBlob) {
-        const cleanFileName = `clean/${session.user.id}/${Date.now()}_clean.wav`;
-        const { error: cleanUploadError } = await supabase.storage
-          .from('recordings')
-          .upload(cleanFileName, cleanAudioBlob, { contentType: 'audio/wav' });
-          
-        if (!cleanUploadError) {
-          cleanPublicUrl = supabase.storage.from('recordings').getPublicUrl(cleanFileName).data.publicUrl;
-        }
+      // Fetch IP Address
+      let ip_address = null;
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        ip_address = ipData.ip;
+      } catch (e) {
+        console.error("IP alınamadı:", e);
       }
 
       // Save Data to Supabase Database
       const recordData = {
         user_id: session.user.id,
         audio_url: publicUrl,
-        clean_audio_url: cleanPublicUrl,
         bpm: calculatedBpm,
         recording_duration: recordingTime,
-        waveform_data: waveformData.length > 0 ? waveformData : null
+        waveform_data: waveformData.length > 0 ? waveformData : null,
+        ip_address: ip_address
       };
 
       if (hasGlucose) recordData.glucose_level = parseFloat(glucose);
@@ -223,8 +208,6 @@ const Dashboard = ({ session }) => {
       setSuccess(true);
       setAudioBlob(null);
       setAudioUrl(null);
-      setCleanAudioBlob(null);
-      setCleanAudioUrl(null);
       setCalculatedBpm(null);
       setWaveformData([]);
       setGlucose('');
@@ -317,14 +300,9 @@ const Dashboard = ({ session }) => {
 
             {audioUrl && !isRecording && !analyzing && (
               <div className="mt-6 w-full max-w-md space-y-4">
-                <div className="bg-slate-100 p-3 rounded-xl">
-                  <span className="text-xs font-semibold text-slate-500 block mb-1">Ham Ses Kaydı</span>
-                  <audio src={audioUrl} controls className="w-full h-8" />
-                </div>
-                
-                {cleanAudioUrl && (
+                {waveformData.length > 0 && (
                   <WaveformPlayer 
-                    audioUrl={cleanAudioUrl} 
+                    audioUrl={audioUrl} 
                     waveformData={waveformData} 
                     bpm={calculatedBpm} 
                   />

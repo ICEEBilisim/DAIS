@@ -116,29 +116,16 @@ async def analyze_audio(file: UploadFile = File(...)):
                     os.remove(wav_path)
                 return {"status": "error", "message": "Kalp atışı tespit edilemedi. Lütfen sessiz bir ortamda, mikrofonu göğsünüze tam temas ettirerek tekrar deneyin."}
 
-        # 3. Noise Reduction & Filtering for Playback ONLY
-        reduced_noise = nr.reduce_noise(y=y, sr=sr, prop_decrease=0.8)
-        
-        # Apply bandpass filter to isolate heartbeat frequencies (20Hz - 400Hz)
-        # (Yüksek frekansların eklenmesi telefon hoparlörlerinde duyulabilirliği artırır)
-        filtered_audio = butter_bandpass_filter(reduced_noise, 20.0, 400.0, sr, order=3)
-        
-        # Amplify the heartbeat
-        filtered_audio = librosa.util.normalize(filtered_audio) * 0.95
-            
         print(f"DSP finished. BPM calculated: {bpm} (Beat frames found: {len(beat_frames)})")
 
-        # 4. Save clean audio to temp wav
-        clean_temp_path = temp_path.replace(ext, "_clean.wav")
-        sf.write(clean_temp_path, filtered_audio, sr)
-        
-        # 5. Extract Waveform Peaks (60 bins)
+        # 4. Extract Waveform Peaks from RAW AUDIO (60 bins)
+        # We no longer use filtered_audio to save processing time
         waveform_bins = 60
-        chunk_size = len(filtered_audio) // waveform_bins
+        chunk_size = len(normalized_raw) // waveform_bins
         waveform_data = []
         if chunk_size > 0:
             for i in range(waveform_bins):
-                chunk = filtered_audio[i * chunk_size : (i + 1) * chunk_size]
+                chunk = normalized_raw[i * chunk_size : (i + 1) * chunk_size]
                 peak = float(np.max(np.abs(chunk)))
                 waveform_data.append(peak)
             
@@ -151,21 +138,14 @@ async def analyze_audio(file: UploadFile = File(...)):
         else:
             waveform_data = [0.05] * waveform_bins
         
-        # 6. Read clean wav and encode to Base64
-        with open(clean_temp_path, "rb") as f:
-            wav_bytes = f.read()
-            clean_b64 = base64.b64encode(wav_bytes).decode('utf-8')
-        
-        # 6. Cleanup
+        # 5. Cleanup
         os.remove(temp_path)
         if os.path.exists(wav_path):
             os.remove(wav_path)
-        os.remove(clean_temp_path)
         
         return {
             "status": "success",
             "bpm": int(bpm),
-            "clean_audio_b64": clean_b64,
             "waveform_data": waveform_data
         }
         

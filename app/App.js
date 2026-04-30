@@ -8,9 +8,8 @@ import Dashboard from './src/screens/Dashboard';
 import History from './src/screens/History';
 import PrivacyPolicy from './src/screens/PrivacyPolicy';
 import Guide from './src/screens/Guide';
-import Dashboard from './src/screens/Dashboard';
-import History from './src/screens/History';
-import PrivacyPolicy from './src/screens/PrivacyPolicy';
+
+import SupportChat from './src/screens/SupportChat';
 
 const Stack = createNativeStackNavigator();
 
@@ -111,9 +110,14 @@ export default function App() {
                   </View>
                 ),
                 headerRight: () => (
-                  <TouchableOpacity onPress={() => navigation.navigate('Guide')} style={{ backgroundColor: '#ecfeff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#cffafe' }}>
-                    <Text style={{ color: '#0e7490', fontSize: 12, fontWeight: 'bold' }}>Uygulama Rehberi</Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('SupportChat')} style={{ backgroundColor: '#06b6d4', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginRight: 8 }}>
+                      <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Yardım</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Guide')} style={{ backgroundColor: '#ecfeff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#cffafe' }}>
+                      <Text style={{ color: '#0e7490', fontSize: 12, fontWeight: 'bold' }}>Rehber</Text>
+                    </TouchableOpacity>
+                  </View>
                 )
               })}
             >
@@ -135,6 +139,12 @@ export default function App() {
               component={Guide}
               options={{ title: 'Uygulama Rehberi' }} 
             />
+            <Stack.Screen 
+              name="SupportChat" 
+              options={{ title: 'Canlı Destek' }}
+            >
+              {(props) => <SupportChat {...props} session={session} />}
+            </Stack.Screen>
           </>
         )}
       </Stack.Navigator>
