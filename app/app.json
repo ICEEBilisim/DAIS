@@ -2,8 +2,8 @@
   "expo": {
     "name": "DAIS",
     "slug": "dais",
-    "version": "1.0.0",
-    "orientation": "portrait",
+    "version": "1.0.2",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -14,11 +14,16 @@
     },
     "ios": {
       "bundleIdentifier": "com.iceebilisim.dais",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "appleTeamId": "BVKK45K5QB",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "2"
     },
     "android": {
       "package": "com.iceebilisim.dais",
-      "versionCode": 1,
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

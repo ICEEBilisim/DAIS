@@ -428,6 +428,12 @@ export default function Dashboard({ navigation, session }) {
           )}
         </TouchableOpacity>
       </View>
+      
+      <View style={{ alignItems: 'center', marginTop: 24, marginBottom: 10 }}>
+        <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
+          <Text style={{ color: '#64748b', fontSize: 13, textDecorationLine: 'underline' }}>Gizlilik Politikası</Text>
+        </TouchableOpacity>
+      </View>
       </ScrollView>
     </TouchableWithoutFeedback>
   );
