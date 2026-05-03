@@ -13,13 +13,23 @@ const Onboarding = ({ session, onComplete }) => {
 
     setLoading(true);
     try {
+      let ip_address = null;
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        ip_address = ipData.ip;
+      } catch (e) {
+        console.error("IP alınamadı:", e);
+      }
+
       const { error } = await supabase
         .from('users')
         .insert([
           { 
             id: session.user.id, 
             bird: bird, 
-            gender: gender 
+            gender: gender,
+            ip_address: ip_address
           }
         ]);
 
