@@ -66,7 +66,7 @@ const Dashboard = ({ session }) => {
     try {
       const { data, error } = await supabase
         .from('support_messages')
-        .select('user_id, message, created_at, ip_address, sender')
+        .select('user_id, message, created_at, location_data, sender')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -82,7 +82,7 @@ const Dashboard = ({ session }) => {
               id: msg.user_id,
               lastMessage: msg.message,
               lastMessageTime: msg.created_at,
-              ip_address: msg.ip_address,
+              location_data: msg.location_data,
               unread: msg.sender === 'user'
             });
           }
@@ -281,8 +281,18 @@ const Dashboard = ({ session }) => {
                 <div>
                   <h2 className="font-bold text-slate-800 font-mono text-sm">{selectedUser}</h2>
                   <div className="flex items-center text-xs text-slate-500 mt-0.5">
-                    <Globe className="w-3 h-3 mr-1" />
-                    IP: {users.find(u => u.id === selectedUser)?.ip_address || 'Bilinmiyor'}
+                    <Globe className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span className="truncate max-w-[300px]">
+                      {(() => {
+                        const loc = users.find(u => u.id === selectedUser)?.location_data;
+                        if (!loc) return 'Bilinmiyor';
+                        const parts = [];
+                        if (loc.ip_address) parts.push(`IP: ${loc.ip_address}`);
+                        if (loc.city || loc.country) parts.push(`${loc.city || ''}, ${loc.country || ''}`);
+                        if (loc.isp) parts.push(`${loc.isp} (${loc.connection_type || 'Unknown'})`);
+                        return parts.join(' • ') || 'Bilinmiyor';
+                      })()}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -305,8 +315,10 @@ const Dashboard = ({ session }) => {
                         <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                       </div>
                       <div className={`flex items-center mt-1 text-[11px] text-slate-400 ${isAdmin ? 'justify-end mr-1' : 'ml-1'}`}>
-                        {!isAdmin && msg.ip_address && (
-                          <span className="mr-2 px-1.5 py-0.5 bg-slate-200 rounded text-slate-600">{msg.ip_address}</span>
+                        {!isAdmin && msg.location_data && (
+                          <span className="mr-2 px-1.5 py-0.5 bg-slate-200 rounded text-slate-600 truncate max-w-xs">
+                            {msg.location_data.city ? `${msg.location_data.city}, ${msg.location_data.country} (${msg.location_data.isp})` : (msg.location_data.ip_address || 'IP Bilinmiyor')}
+                          </span>
                         )}
                         <Clock className="w-3 h-3 mr-1" />
                         {formatDate(msg.created_at)}
