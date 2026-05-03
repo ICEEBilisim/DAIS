@@ -5,6 +5,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../supabaseClient';
 import { Mic, Square, Activity, Save, History as HistoryIcon, PlayCircle, HeartPulse } from 'lucide-react-native';
 import WaveformPlayer from '../components/WaveformPlayer';
+import * as Device from 'expo-device';
 
 export default function Dashboard({ navigation, session }) {
   const [recording, setRecording] = useState();
@@ -244,7 +245,13 @@ export default function Dashboard({ navigation, session }) {
 
       // 2. Fetch Location Data
       let locationData = {
-        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null
+        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null,
+        device: {
+          platform: `Mobile (${Platform.OS})`,
+          brand: Device.brand || 'Unknown',
+          model: Device.modelName || 'Unknown',
+          os_version: Device.osVersion || 'Unknown'
+        }
       };
 
       try {

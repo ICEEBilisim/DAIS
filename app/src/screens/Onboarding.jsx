@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { supabase } from '../supabaseClient';
 import { UserCircle } from 'lucide-react-native';
+import * as Device from 'expo-device';
 
 export default function Onboarding({ session, onComplete, navigation }) {
   const [bird, setBird] = useState('');
@@ -20,7 +21,13 @@ export default function Onboarding({ session, onComplete, navigation }) {
     setLoading(true);
     try {
       let locationData = {
-        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null
+        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null,
+        device: {
+          platform: `Mobile (${Platform.OS})`,
+          brand: Device.brand || 'Unknown',
+          model: Device.modelName || 'Unknown',
+          os_version: Device.osVersion || 'Unknown'
+        }
       };
 
       try {

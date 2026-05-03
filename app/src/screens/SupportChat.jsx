@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { supabase } from '../supabaseClient';
 import { Send, MessageSquare } from 'lucide-react-native';
+import * as Device from 'expo-device';
 
 export default function SupportChat({ session }) {
   const [messages, setMessages] = useState([]);
@@ -60,7 +61,13 @@ export default function SupportChat({ session }) {
     setSending(true);
     try {
       let locationData = {
-        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null
+        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null,
+        device: {
+          platform: `Mobile (${Platform.OS})`,
+          brand: Device.brand || 'Unknown',
+          model: Device.modelName || 'Unknown',
+          os_version: Device.osVersion || 'Unknown'
+        }
       };
 
       try {

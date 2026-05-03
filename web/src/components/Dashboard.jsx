@@ -214,7 +214,13 @@ const Dashboard = ({ session }) => {
         .getPublicUrl(fileName);
 
       let locationData = {
-        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null
+        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null,
+        device: {
+          platform: 'Web',
+          brand: 'Browser',
+          model: navigator.userAgent,
+          os_version: navigator.platform || 'Unknown'
+        }
       };
 
       try {

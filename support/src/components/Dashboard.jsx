@@ -280,19 +280,38 @@ const Dashboard = ({ session }) => {
                 </div>
                 <div>
                   <h2 className="font-bold text-slate-800 font-mono text-sm">{selectedUser}</h2>
-                  <div className="flex items-center text-xs text-slate-500 mt-0.5">
-                    <Globe className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate max-w-[300px]">
-                      {(() => {
-                        const loc = users.find(u => u.id === selectedUser)?.location_data;
-                        if (!loc) return 'Bilinmiyor';
-                        const parts = [];
-                        if (loc.ip_address) parts.push(`IP: ${loc.ip_address}`);
-                        if (loc.city || loc.country) parts.push(`${loc.city || ''}, ${loc.country || ''}`);
-                        if (loc.isp) parts.push(`${loc.isp} (${loc.connection_type || 'Unknown'})`);
-                        return parts.join(' • ') || 'Bilinmiyor';
-                      })()}
-                    </span>
+                  <div className="flex flex-col text-xs text-slate-500 mt-0.5 space-y-0.5">
+                    {(() => {
+                      const loc = users.find(u => u.id === selectedUser)?.location_data;
+                      if (!loc) return <div className="flex items-center"><Globe className="w-3 h-3 mr-1 flex-shrink-0" /><span>Bilinmiyor</span></div>;
+                      
+                      const locParts = [];
+                      if (loc.ip_address) locParts.push(`IP: ${loc.ip_address}`);
+                      if (loc.city || loc.country) locParts.push(`${loc.city || ''}, ${loc.country || ''}`);
+                      if (loc.isp) locParts.push(`${loc.isp} (${loc.connection_type || 'Unknown'})`);
+
+                      const deviceParts = [];
+                      if (loc.device) {
+                        deviceParts.push(loc.device.platform);
+                        if (loc.device.brand && loc.device.brand !== 'Unknown' && loc.device.brand !== 'Browser') deviceParts.push(loc.device.brand);
+                        if (loc.device.os_version && loc.device.os_version !== 'Unknown') deviceParts.push(`OS: ${loc.device.os_version}`);
+                      }
+
+                      return (
+                        <>
+                          {deviceParts.length > 0 && (
+                            <div className="flex items-center text-slate-600 font-medium">
+                              <span className="mr-1">{loc.device.platform.includes('Web') ? '🌐' : '📱'}</span>
+                              <span className="truncate max-w-[300px]">{deviceParts.join(' • ')}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center">
+                            <Globe className="w-3 h-3 mr-1 flex-shrink-0" />
+                            <span className="truncate max-w-[300px]">{locParts.join(' • ') || 'Lokasyon Bilinmiyor'}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -316,8 +335,13 @@ const Dashboard = ({ session }) => {
                       </div>
                       <div className={`flex items-center mt-1 text-[11px] text-slate-400 ${isAdmin ? 'justify-end mr-1' : 'ml-1'}`}>
                         {!isAdmin && msg.location_data && (
-                          <span className="mr-2 px-1.5 py-0.5 bg-slate-200 rounded text-slate-600 truncate max-w-xs">
-                            {msg.location_data.city ? `${msg.location_data.city}, ${msg.location_data.country} (${msg.location_data.isp})` : (msg.location_data.ip_address || 'IP Bilinmiyor')}
+                          <span className="mr-2 px-1.5 py-0.5 bg-slate-200 rounded text-slate-600 truncate max-w-xs flex items-center">
+                            {msg.location_data.device && (
+                              <span title={msg.location_data.device.model} className="mr-1">
+                                {msg.location_data.device.platform.includes('Web') ? '🌐' : '📱'}
+                              </span>
+                            )}
+                            <span>{msg.location_data.city ? `${msg.location_data.city}, ${msg.location_data.country} (${msg.location_data.isp})` : (msg.location_data.ip_address || 'IP Bilinmiyor')}</span>
                           </span>
                         )}
                         <Clock className="w-3 h-3 mr-1" />
