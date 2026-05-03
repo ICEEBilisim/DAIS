@@ -12,7 +12,14 @@ const Dashboard = ({ session }) => {
   const [chatError, setChatError] = useState(null);
   const [sendError, setSendError] = useState(null);
   
-  const [readUsers, setReadUsers] = useState(new Set());
+  const [readTimestamps, setReadTimestamps] = useState(() => {
+    const saved = localStorage.getItem('adminReadTimestamps');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('adminReadTimestamps', JSON.stringify(readTimestamps));
+  }, [readTimestamps]);
   const messagesEndRef = useRef(null);
   const selectedUserRef = useRef(selectedUser);
 
@@ -32,13 +39,13 @@ const Dashboard = ({ session }) => {
       }, (payload) => {
         const currentUser = selectedUserRef.current;
         
-        // Eğer kullanıcıdan yeni mesaj geldiyse ve şu an ona bakmıyorsak YENİ yazısını tekrar göster
-        if (payload.new.sender === 'user' && payload.new.user_id !== currentUser) {
-          setReadUsers(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(payload.new.user_id);
-            return newSet;
-          });
+        // Eğer kullanıcıdan yeni mesaj geldiyse ve şu an ona bakıyorsak, okundu olarak işaretle.
+        // Bakmıyorsak yeni mesajın tarihi zaten son okunma tarihinden büyük olacağı için otomatik YENİ görünecektir.
+        if (payload.new.sender === 'user' && payload.new.user_id === currentUser) {
+          setReadTimestamps(prev => ({
+            ...prev,
+            [currentUser]: payload.new.created_at
+          }));
         }
         
         setMessages(current => {
@@ -104,11 +111,13 @@ const Dashboard = ({ session }) => {
     setChatError(null);
     setSendError(null);
     
-    setReadUsers(prev => {
-      const newSet = new Set(prev);
-      newSet.add(userId);
-      return newSet;
-    });
+    const userObj = users.find(u => u.id === userId);
+    if (userObj) {
+      setReadTimestamps(prev => ({
+        ...prev,
+        [userId]: userObj.lastMessageTime
+      }));
+    }
 
     try {
       const { data, error } = await supabase
@@ -230,7 +239,8 @@ const Dashboard = ({ session }) => {
             <div className="divide-y divide-slate-100">
               {users.map(u => {
                 const isSelected = selectedUser === u.id;
-                const isUnread = u.unread && !readUsers.has(u.id);
+                const lastRead = readTimestamps[u.id];
+                const isUnread = u.unread && (!lastRead || new Date(u.lastMessageTime) > new Date(lastRead));
 
                 return (
                   <button 
