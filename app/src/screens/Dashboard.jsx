@@ -242,14 +242,22 @@ export default function Dashboard({ navigation, session }) {
         .from('recordings')
         .getPublicUrl(fileName);
 
-      // 2. Fetch IP Address
-      let ip_address = null;
+      // 2. Fetch Location Data
+      let locationData = {
+        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null
+      };
       try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipRes = await fetch('https://ipwhois.app/json/');
         const ipData = await ipRes.json();
-        ip_address = ipData.ip;
+        if (ipData.success) {
+          locationData = {
+            ip_address: ipData.ip, city: ipData.city, country: ipData.country,
+            latitude: ipData.latitude, longitude: ipData.longitude,
+            isp: ipData.isp, connection_type: ipData.type
+          };
+        }
       } catch (e) {
-        console.error("IP alınamadı:", e);
+        console.error("Konum bilgileri alınamadı:", e);
       }
 
       // 3. Save Data to Supabase
@@ -259,7 +267,7 @@ export default function Dashboard({ navigation, session }) {
         bpm: calculatedBpm,
         recording_duration: recordingTime,
         waveform_data: waveformData.length > 0 ? waveformData : null,
-        ip_address: ip_address
+        location_data: locationData
       };
 
       if (hasGlucose) recordData.glucose_level = parseFloat(glucose);

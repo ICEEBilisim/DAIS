@@ -59,13 +59,21 @@ export default function SupportChat({ session }) {
     
     setSending(true);
     try {
-      let ip_address = null;
+      let locationData = {
+        ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null
+      };
       try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipRes = await fetch('https://ipwhois.app/json/');
         const ipData = await ipRes.json();
-        ip_address = ipData.ip;
+        if (ipData.success) {
+          locationData = {
+            ip_address: ipData.ip, city: ipData.city, country: ipData.country,
+            latitude: ipData.latitude, longitude: ipData.longitude,
+            isp: ipData.isp, connection_type: ipData.type
+          };
+        }
       } catch (err) {
-        console.error("IP alinmadi", err);
+        console.error("Konum alinmadi", err);
       }
 
       const { data: newMsg, error } = await supabase
@@ -73,7 +81,7 @@ export default function SupportChat({ session }) {
         .insert([{
           user_id: session.user.id,
           message: newMessage.trim(),
-          ip_address: ip_address,
+          location_data: locationData,
           sender: 'user'
         }])
         .select()
