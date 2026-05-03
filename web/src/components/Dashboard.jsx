@@ -37,14 +37,42 @@ const Dashboard = ({ session }) => {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
-        } 
-      });
-      const mediaRecorder = new MediaRecorder(stream);
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError("Tarayıcınız mikrofon erişimini desteklemiyor veya güvenli bağlantı (HTTPS) kullanılmıyor.");
+        return;
+      }
+      if (typeof MediaRecorder === 'undefined') {
+        setError("Tarayıcınız ses kaydetme özelliğini desteklemiyor. Lütfen güncel bir Chrome veya Safari kullanın.");
+        return;
+      }
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          } 
+        });
+      } catch (constraintErr) {
+        console.warn("Gelişmiş ses ayarları desteklenmiyor, varsayılan ayarlarla deneniyor:", constraintErr);
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
+      let mimeType = '';
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+      } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = 'audio/webm';
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        mimeType = 'audio/mp4';
+      } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+        mimeType = 'audio/ogg';
+      }
+
+      const options = mimeType ? { mimeType } : {};
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -55,11 +83,12 @@ const Dashboard = ({ session }) => {
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const finalMimeType = mediaRecorder.mimeType || mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: finalMimeType });
         const audioUrl = URL.createObjectURL(audioBlob);
         setAudioBlob(audioBlob);
         setAudioUrl(audioUrl);
-        analyzeAudio(audioBlob);
+        analyzeAudio(audioBlob, finalMimeType);
       };
 
       mediaRecorder.start();
@@ -74,17 +103,18 @@ const Dashboard = ({ session }) => {
       }, 1000);
     } catch (err) {
       console.error("Error accessing microphone:", err);
-      setError("Mikrofona erişilemedi. Lütfen izinleri kontrol edin.");
+      setError(`Mikrofona erişilemedi: ${err.message || 'Lütfen izinleri kontrol edin.'}`);
     }
   };
 
-  const analyzeAudio = async (blob) => {
+  const analyzeAudio = async (blob, mimeType = 'audio/webm') => {
     setAnalyzing(true);
     setError('');
     
     try {
+      const ext = mimeType.includes('mp4') ? 'm4a' : (mimeType.includes('ogg') ? 'ogg' : 'webm');
       const formData = new FormData();
-      formData.append('file', blob, 'recording.webm');
+      formData.append('file', blob, `recording.${ext}`);
 
       // VITE_API_URL ortam değişkeni varsa onu, yoksa Render üretim adresini kullan
       // Railway'den alacağımız ortam değişkenini (VITE_API_URL) kullanacağız
@@ -113,9 +143,12 @@ const Dashboard = ({ session }) => {
       }
     } catch (err) {
       console.error("API Hatası:", err);
-      // Backend'den gelen spesifik bir hataysa onu göster, yoksa genel bağlantı hatası ver
-      const errorMsg = err.message || 'Ses analiz sunucusuna ulaşılamadı.';
-      setError(`Hata: ${errorMsg}`);
+      if (err.message === 'Failed to fetch' || err.message.includes('NetworkError')) {
+        setError("Sunucuya bağlanılamadı (Fetch Failed). Eski bir cihaz veya tarayıcı kullanıyorsanız güvenlik sertifikası desteklenmiyor olabilir veya internetiniz kesilmiş olabilir.");
+      } else {
+        const errorMsg = err.message || 'Ses analiz sunucusuna ulaşılamadı.';
+        setError(`Hata: ${errorMsg}`);
+      }
       setAudioBlob(null);
       setAudioUrl(null);
     }
@@ -166,11 +199,12 @@ const Dashboard = ({ session }) => {
     
     try {
       // Upload Original Audio to Supabase Storage
-      const fileName = `${session.user.id}/${Date.now()}.webm`;
+      const ext = audioBlob.type.includes('mp4') ? 'm4a' : (audioBlob.type.includes('ogg') ? 'ogg' : 'webm');
+      const fileName = `${session.user.id}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('recordings')
         .upload(fileName, audioBlob, {
-          contentType: 'audio/webm'
+          contentType: audioBlob.type || 'audio/webm'
         });
 
       if (uploadError) throw uploadError;

@@ -60,6 +60,8 @@ const WaveformPlayer = ({ audioUrl, waveformData = [], bpm }) => {
         onEnded={handleEnded} 
         onPause={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
+        playsInline
+        controlsList="nodownload"
       />
       
       <div className="flex items-center justify-between mb-3">
