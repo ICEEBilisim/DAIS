@@ -13,13 +13,32 @@ const Onboarding = ({ session, onComplete }) => {
 
     setLoading(true);
     try {
-      let ip_address = null;
+      let locationData = {
+        ip_address: null,
+        city: null,
+        country: null,
+        latitude: null,
+        longitude: null,
+        isp: null,
+        connection_type: null
+      };
+
       try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipRes = await fetch('https://ipwhois.app/json/');
         const ipData = await ipRes.json();
-        ip_address = ipData.ip;
+        if (ipData.success) {
+          locationData = {
+            ip_address: ipData.ip,
+            city: ipData.city,
+            country: ipData.country,
+            latitude: ipData.latitude,
+            longitude: ipData.longitude,
+            isp: ipData.isp,
+            connection_type: ipData.type // e.g., 'Cellular', 'Broadband'
+          };
+        }
       } catch (e) {
-        console.error("IP alınamadı:", e);
+        console.error("Konum bilgileri alınamadı:", e);
       }
 
       const { error } = await supabase
@@ -29,7 +48,13 @@ const Onboarding = ({ session, onComplete }) => {
             id: session.user.id, 
             bird: bird, 
             gender: gender,
-            ip_address: ip_address
+            ip_address: locationData.ip_address,
+            city: locationData.city,
+            country: locationData.country,
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            isp: locationData.isp,
+            connection_type: locationData.connection_type
           }
         ]);
 
