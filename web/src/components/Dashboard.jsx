@@ -216,15 +216,24 @@ const Dashboard = ({ session }) => {
       let locationData = {
         ip_address: null, city: null, country: null, latitude: null, longitude: null, isp: null, connection_type: null
       };
+
       try {
-        const ipRes = await fetch('https://ipwhois.app/json/');
-        const ipData = await ipRes.json();
-        if (ipData.success) {
+        const ipRes = await fetch('https://ipapi.co/json/');
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
           locationData = {
-            ip_address: ipData.ip, city: ipData.city, country: ipData.country,
-            latitude: ipData.latitude, longitude: ipData.longitude,
-            isp: ipData.isp, connection_type: ipData.type
+            ip_address: ipData.ip || null, 
+            city: ipData.city || null, 
+            country: ipData.country_name || null,
+            latitude: ipData.latitude || null, 
+            longitude: ipData.longitude || null,
+            isp: ipData.org || null, 
+            connection_type: ipData.network || null
           };
+        } else {
+          const fallbackRes = await fetch('https://api.ipify.org?format=json');
+          const fallbackData = await fallbackRes.json();
+          locationData.ip_address = fallbackData.ip || null;
         }
       } catch (e) {
         console.error("Konum bilgileri alınamadı:", e);
