@@ -48,13 +48,7 @@ const Onboarding = ({ session, onComplete }) => {
             id: session.user.id, 
             bird: bird, 
             gender: gender,
-            ip_address: locationData.ip_address,
-            city: locationData.city,
-            country: locationData.country,
-            latitude: locationData.latitude,
-            longitude: locationData.longitude,
-            isp: locationData.isp,
-            connection_type: locationData.connection_type
+            location_data: locationData // locationData bir JSON (Object) olarak gidecek
           }
         ]);
 
