@@ -75,6 +75,7 @@ export default function SupportChat({ session }) {
         if (ipRes.ok) {
           const ipData = await ipRes.json();
           locationData = {
+            ...locationData,
             ip_address: ipData.ip || null, 
             city: ipData.city || null, 
             country: ipData.country_name || null,
