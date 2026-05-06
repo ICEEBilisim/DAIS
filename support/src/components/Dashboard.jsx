@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
+import { Users, LogOut, Send, MessageSquare, Clock, Globe, Briefcase } from 'lucide-react';
+import Crm from './Crm';
 import { Users, LogOut, Send, MessageSquare, Clock, Globe } from 'lucide-react';
 
 const Dashboard = ({ session }) => {
   const [users, setUsers] = useState([]);
   const [activeProject, setActiveProject] = useState('dais');
+  const [viewMode, setViewMode] = useState('chat'); // 'chat' or 'crm'
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [reply, setReply] = useState('');
@@ -200,10 +203,15 @@ const Dashboard = ({ session }) => {
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden select-none">
-      <div 
-        style={{ width: sidebarWidth }} 
-        className="bg-white border-r border-slate-200 flex flex-col z-10 flex-shrink-0 relative"
-      >
+      {/* Top/Sidebar Container */}
+      {viewMode === 'crm' ? (
+        <Crm setViewMode={setViewMode} />
+      ) : (
+        <>
+          <div 
+            style={{ width: sidebarWidth }} 
+            className="bg-white border-r border-slate-200 flex flex-col z-10 flex-shrink-0 relative"
+          >
         <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-center gap-2">
           <button 
             onClick={() => { setActiveProject('dais'); setSelectedUser(null); setMessages([]); }}
@@ -218,6 +226,19 @@ const Dashboard = ({ session }) => {
             ICEE
           </button>
         </div>
+
+        {/* View Mode Toggle (Only show CRM button if ICEE is selected, because DAIS doesn't have leads table yet, or show it for both but only ICEE leads exist for now) */}
+        {activeProject === 'icee' && (
+          <div className="p-3 border-b border-slate-200 bg-white">
+            <button 
+              onClick={() => setViewMode('crm')}
+              className="w-full flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 py-2 rounded-lg text-sm font-bold transition-colors border border-emerald-100 shadow-sm"
+            >
+              <Briefcase className="w-4 h-4" />
+              ICEE Müşteri Havuzu (CRM)
+            </button>
+          </div>
+        )}
         {/* Kusursuz Resize Handle (Pointer Capture) */}
         <div 
           className="absolute top-0 -right-2 w-4 h-full cursor-col-resize z-50 flex justify-center items-center group touch-none"
@@ -429,8 +450,11 @@ const Dashboard = ({ session }) => {
             <p className="text-lg font-medium text-slate-500">Destek Mesajı Seçin</p>
             <p className="text-sm mt-2">Mesajları görüntülemek ve yanıtlamak için soldaki listeden bir kullanıcı seçin.</p>
           </div>
+          </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 };
