@@ -4,6 +4,7 @@ import { Users, LogOut, Send, MessageSquare, Clock, Globe } from 'lucide-react';
 
 const Dashboard = ({ session }) => {
   const [users, setUsers] = useState([]);
+  const [activeProject, setActiveProject] = useState('dais');
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [reply, setReply] = useState('');
@@ -27,15 +28,22 @@ const Dashboard = ({ session }) => {
     selectedUserRef.current = selectedUser;
   }, [selectedUser]);
 
+  const activeProjectRef = useRef(activeProject);
+  useEffect(() => {
+    activeProjectRef.current = activeProject;
+  }, [activeProject]);
+
   useEffect(() => {
     fetchUsers();
 
+    const tableName = activeProject === 'icee' ? 'icee_support_messages' : 'support_messages';
+
     const channel = supabase
-      .channel('support_admin_channel')
+      .channel(`support_admin_channel_${activeProject}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
-        table: 'support_messages'
+        table: tableName
       }, (payload) => {
         const currentUser = selectedUserRef.current;
         
@@ -63,7 +71,7 @@ const Dashboard = ({ session }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [activeProject]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,8 +79,9 @@ const Dashboard = ({ session }) => {
 
   const fetchUsers = async () => {
     try {
+      const tableName = activeProject === 'icee' ? 'icee_support_messages' : 'support_messages';
       const { data, error } = await supabase
-        .from('support_messages')
+        .from(tableName)
         .select('user_id, message, created_at, location_data, sender')
         .order('created_at', { ascending: false });
 
@@ -120,8 +129,9 @@ const Dashboard = ({ session }) => {
     }
 
     try {
+      const tableName = activeProject === 'icee' ? 'icee_support_messages' : 'support_messages';
       const { data, error } = await supabase
-        .from('support_messages')
+        .from(tableName)
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: true });
@@ -140,8 +150,9 @@ const Dashboard = ({ session }) => {
     setSendError(null);
 
     try {
+      const tableName = activeProject === 'icee' ? 'icee_support_messages' : 'support_messages';
       const { data: newMsg, error } = await supabase
-        .from('support_messages')
+        .from(tableName)
         .insert([{
           user_id: selectedUser,
           message: reply.trim(),
@@ -189,11 +200,24 @@ const Dashboard = ({ session }) => {
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden select-none">
-      {/* Sidebar */}
       <div 
         style={{ width: sidebarWidth }} 
         className="bg-white border-r border-slate-200 flex flex-col z-10 flex-shrink-0 relative"
       >
+        <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-center gap-2">
+          <button 
+            onClick={() => { setActiveProject('dais'); setSelectedUser(null); setMessages([]); }}
+            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-bold transition-all ${activeProject === 'dais' ? 'bg-cyan-500 text-white shadow-md' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
+          >
+            DAIS
+          </button>
+          <button 
+            onClick={() => { setActiveProject('icee'); setSelectedUser(null); setMessages([]); }}
+            className={`flex-1 py-1.5 px-3 rounded-md text-sm font-bold transition-all ${activeProject === 'icee' ? 'bg-[#06b6d4] text-white shadow-md' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
+          >
+            ICEE
+          </button>
+        </div>
         {/* Kusursuz Resize Handle (Pointer Capture) */}
         <div 
           className="absolute top-0 -right-2 w-4 h-full cursor-col-resize z-50 flex justify-center items-center group touch-none"
