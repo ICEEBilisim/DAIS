@@ -438,7 +438,9 @@ const Dashboard = ({ session }) => {
             disabled={loading || !audioBlob || (!glucose.trim() && !(systolicBp.trim() && diastolicBp.trim())) || recordingTime < 15 || analyzing || !calculatedBpm}
             className="w-full flex justify-center items-center bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-4 px-6 rounded-xl transition-colors shadow-sm"
           >
-            {loading ? (
+            {success ? (
+              <span className="font-bold">Verileriniz kaydedildi. Geçmiş Verilerden İzleyebilirsiniz.</span>
+            ) : loading ? (
               <span className="animate-pulse">Kaydediliyor... Lütfen bekleyin.</span>
             ) : analyzing ? (
               <span className="animate-pulse">Ses Analiz Ediliyor...</span>

@@ -15,6 +15,7 @@ function App() {
   const [hasProfile, setHasProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSupport, setShowSupport] = useState(false);
+  const [hasUnreadSupport, setHasUnreadSupport] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -61,6 +62,27 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!session || !session.user) return;
+
+    // Listen for new admin messages
+    const channel = supabase
+      .channel(`app_support_notifications_${session.user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${session.user.id}` }, payload => {
+        if (payload.new.sender === 'admin') {
+          // Add a small delay to avoid false positives if they just opened the chat
+          setTimeout(() => {
+            setHasUnreadSupport(prev => true);
+          }, 500);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session]);
+
   if (loading) {
     return <div className="flex h-screen items-center justify-center bg-slate-50"><p className="text-cyan-600 font-medium">Güvenli bağlantı kuruluyor...</p></div>;
   }
@@ -90,12 +112,29 @@ function App() {
               </Link>
               
               {session && (
-                <button onClick={() => setShowSupport(!showSupport)} className="text-sm font-semibold text-white bg-cyan-600 px-5 py-2 rounded-full hover:bg-cyan-700 transition-colors shadow-sm flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                  </svg>
-                  Yardım / Destek
-                </button>
+                <div className="relative">
+                  <button 
+                    onClick={() => { setShowSupport(!showSupport); setHasUnreadSupport(false); }} 
+                    className="text-sm font-semibold text-white bg-cyan-600 px-5 py-2 rounded-full hover:bg-cyan-700 transition-colors shadow-sm flex items-center h-full relative"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    Yardım / Destek
+                    {hasUnreadSupport && !showSupport && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white"></span>
+                      </span>
+                    )}
+                  </button>
+                  {hasUnreadSupport && !showSupport && (
+                    <div className="absolute top-full mt-2 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded shadow-lg whitespace-nowrap animate-bounce pointer-events-none">
+                      Yeni Mesajınız Var!
+                      <div className="absolute -top-1 right-5 w-2 h-2 bg-red-500 transform rotate-45"></div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -108,9 +147,20 @@ function App() {
                 Rehber
               </Link>
               {session && (
-                <button onClick={() => setShowSupport(!showSupport)} className="text-sm font-medium text-cyan-600 hover:text-cyan-700 transition-colors md:hidden block">
-                  Yardım
-                </button>
+                <div className="relative">
+                  <button 
+                    onClick={() => { setShowSupport(!showSupport); setHasUnreadSupport(false); }} 
+                    className="text-sm font-medium text-cyan-600 hover:text-cyan-700 transition-colors md:hidden block relative"
+                  >
+                    Yardım
+                    {hasUnreadSupport && !showSupport && (
+                      <span className="absolute -top-1 -right-2 flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                    )}
+                  </button>
+                </div>
               )}
             </div>
           </div>
