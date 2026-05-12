@@ -83,22 +83,20 @@ const Dashboard = ({ session }) => {
   const fetchUsers = async () => {
     try {
       const tableName = activeProject === 'icee' ? 'icee_support_messages' : 'support_messages';
-      const { data, error } = await supabase
+      
+      // Önce tüm mesajları çekip son mesajları ve okunma durumlarını gruplayalım
+      const { data: messagesData, error: messagesError } = await supabase
         .from(tableName)
         .select('user_id, message, created_at, location_data, sender')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (messagesError) throw messagesError;
 
-      const uniqueUsers = [];
-      const userMap = new Map();
-
-      if (data) {
-        data.forEach(msg => {
-          if (!userMap.has(msg.user_id)) {
-            userMap.set(msg.user_id, true);
-            uniqueUsers.push({
-              id: msg.user_id,
+      const userMessageMap = new Map();
+      if (messagesData) {
+        messagesData.forEach(msg => {
+          if (!userMessageMap.has(msg.user_id)) {
+            userMessageMap.set(msg.user_id, {
               lastMessage: msg.message,
               lastMessageTime: msg.created_at,
               location_data: msg.location_data,
@@ -107,8 +105,66 @@ const Dashboard = ({ session }) => {
           }
         });
       }
+
+      let finalUsers = [];
+
+      // Eğer seçili proje DAIS ise `users` tablosundaki TIKLANABİLİR tüm kullanıcıları çekelim
+      if (activeProject === 'dais') {
+        const { data: usersData, error: usersError } = await supabase
+          .from('users')
+          .select('*');
+        
+        if (usersError) throw usersError;
+
+        if (usersData) {
+          finalUsers = usersData.map(user => {
+            const msgInfo = userMessageMap.get(user.id);
+            return {
+              id: user.id,
+              lastMessage: msgInfo ? msgInfo.lastMessage : 'Henüz mesaj yok',
+              lastMessageTime: msgInfo ? msgInfo.lastMessageTime : (user.created_at || new Date().toISOString()),
+              location_data: msgInfo ? msgInfo.location_data : null,
+              unread: msgInfo ? msgInfo.unread : false,
+              hasMessage: !!msgInfo
+            };
+          });
+        }
+        
+        // users tablosunda olmayıp (silinmiş vs.) mesaj atmış olanları da ekleyelim
+        const existingUserIds = new Set(finalUsers.map(u => u.id));
+        Array.from(userMessageMap.entries()).forEach(([userId, msgInfo]) => {
+          if (!existingUserIds.has(userId)) {
+            finalUsers.push({
+              id: userId,
+              lastMessage: msgInfo.lastMessage,
+              lastMessageTime: msgInfo.lastMessageTime,
+              location_data: msgInfo.location_data,
+              unread: msgInfo.unread,
+              hasMessage: true
+            });
+          }
+        });
+
+      } else {
+        // ICEE için sadece mesajları grupla
+        finalUsers = Array.from(userMessageMap.entries()).map(([userId, msgInfo]) => ({
+          id: userId,
+          lastMessage: msgInfo.lastMessage,
+          lastMessageTime: msgInfo.lastMessageTime,
+          location_data: msgInfo.location_data,
+          unread: msgInfo.unread,
+          hasMessage: true
+        }));
+      }
+
+      // Sıralama: Önce okunmamış mesajlar, sonra tarihe göre en yeniler
+      finalUsers.sort((a, b) => {
+        if (a.unread && !b.unread) return -1;
+        if (!a.unread && b.unread) return 1;
+        return new Date(b.lastMessageTime) - new Date(a.lastMessageTime);
+      });
       
-      setUsers(uniqueUsers);
+      setUsers(finalUsers);
       setFetchError(null);
     } catch (err) {
       console.error('Error fetching users:', err);
