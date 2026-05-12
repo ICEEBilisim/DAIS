@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 import { Users, LogOut, Send, MessageSquare, Clock, Globe, Briefcase } from 'lucide-react';
 import Crm from './Crm';
-import { Users, LogOut, Send, MessageSquare, Clock, Globe } from 'lucide-react';
 
 const Dashboard = ({ session }) => {
   const [users, setUsers] = useState([]);
@@ -505,7 +504,6 @@ const Dashboard = ({ session }) => {
             <MessageSquare className="w-16 h-16 mb-4 opacity-20" />
             <p className="text-lg font-medium text-slate-500">Destek Mesajı Seçin</p>
             <p className="text-sm mt-2">Mesajları görüntülemek ve yanıtlamak için soldaki listeden bir kullanıcı seçin.</p>
-          </div>
           </div>
         )}
       </div>
