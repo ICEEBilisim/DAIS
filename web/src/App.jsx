@@ -8,6 +8,8 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import Guide from './components/Guide';
 import SupportChat from './components/SupportChat';
 import Brosur from './components/Brosur';
+import TestResults from './components/TestResults';
+import { Menu, X } from 'lucide-react';
 import daisIcon from './assets/dais_icon.png';
 import iceeIcon from './assets/icee_icon.jpg';
 
@@ -17,6 +19,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showSupport, setShowSupport] = useState(false);
   const [hasUnreadSupport, setHasUnreadSupport] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -92,90 +95,96 @@ function App() {
     <Router>
       <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
         <header className="bg-white shadow-sm py-4 px-6 border-b border-slate-200 relative z-40">
-          <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="w-full md:w-auto flex flex-col">
-              <h1 className="text-2xl font-bold text-cyan-600 tracking-tight flex items-center">
+          <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
+            <div className="flex flex-col">
+              <Link to="/" className="text-2xl font-bold text-cyan-600 tracking-tight flex items-center hover:opacity-90 transition-opacity">
                 <img src={daisIcon} alt="DAIS" className="w-8 h-8 mr-2 rounded-md object-cover" />
                 D.A.I.S
                 <div className="ml-3 pl-3 border-l border-slate-200 flex items-center text-sm text-slate-500 font-normal">
                   <img src={iceeIcon} alt="ICEE" className="w-4 h-4 mr-1.5 rounded-sm object-cover" />
                   ICEE Bilişim
                 </div>
-              </h1>
-              <div className="text-xs text-slate-500 flex flex-wrap items-center mt-2 gap-y-2">
-                <a href="https://chat.whatsapp.com/C63NIlH1vimLtGCM3pqzbm" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:text-emerald-600 font-medium transition-colors flex items-center gap-1 w-full sm:w-auto">
+              </Link>
+              <div className="text-xs text-slate-500 flex items-center mt-2">
+                <a href="https://chat.whatsapp.com/C63NIlH1vimLtGCM3pqzbm" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:text-emerald-600 font-medium transition-colors flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                   WhatsApp Grubu
                 </a>
               </div>
             </div>
             
-            <div className="hidden md:flex flex-1 justify-center space-x-3">
-              <Link to="/guide" className="text-sm font-semibold text-cyan-700 bg-cyan-50 px-5 py-2 rounded-full hover:bg-cyan-100 hover:text-cyan-800 transition-colors border border-cyan-100 shadow-sm flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                Uygulama Rehberi
-              </Link>
-              <Link to="/brosur" className="text-sm font-semibold text-teal-700 bg-teal-50 px-5 py-2 rounded-full hover:bg-teal-100 hover:text-teal-800 transition-colors border border-teal-100 shadow-sm flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Broşür
-              </Link>
-              
-              {session && (
-                <div className="relative">
-                  <button 
-                    onClick={() => { setShowSupport(!showSupport); setHasUnreadSupport(false); }} 
-                    className="text-sm font-semibold text-white bg-cyan-600 px-5 py-2 rounded-full hover:bg-cyan-700 transition-colors shadow-sm flex items-center h-full relative"
+            <div className="relative">
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors border border-slate-200 flex items-center shadow-sm relative"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {hasUnreadSupport && !isMenuOpen && !showSupport && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white"></span>
+                  </span>
+                )}
+              </button>
+
+              {isMenuOpen && (
+                <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-xl border border-slate-100 w-56 py-3 z-50 overflow-hidden transform origin-top-right transition-all">
+                  <Link 
+                    to="/" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                    </svg>
-                    Yardım / Destek
-                    {hasUnreadSupport && !showSupport && (
-                      <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 border-2 border-white"></span>
-                      </span>
-                    )}
-                  </button>
-                  {hasUnreadSupport && !showSupport && (
-                    <div className="absolute top-full mt-2 right-0 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded shadow-lg whitespace-nowrap animate-bounce pointer-events-none">
-                      Yeni Mesajınız Var!
-                      <div className="absolute -top-1 right-5 w-2 h-2 bg-red-500 transform rotate-45"></div>
+                    Ana Sayfa
+                  </Link>
+                  <Link 
+                    to="/tahliller" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                  >
+                    Tahlil Sonuçları
+                  </Link>
+                  <Link 
+                    to="/guide" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                  >
+                    Uygulama Rehberi
+                  </Link>
+                  <Link 
+                    to="/brosur" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors"
+                  >
+                    Broşür
+                  </Link>
+                  <Link 
+                    to="/privacy-policy" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-700 transition-colors border-b border-slate-100 mb-1 pb-4"
+                  >
+                    Gizlilik Politikası
+                  </Link>
+                  
+                  {session && (
+                    <div className="px-3 pt-1">
+                      <button 
+                        onClick={() => { 
+                          setShowSupport(!showSupport); 
+                          setHasUnreadSupport(false);
+                          setIsMenuOpen(false);
+                        }} 
+                        className="w-full text-left px-4 py-2.5 text-sm font-semibold text-white bg-cyan-600 rounded-xl hover:bg-cyan-700 transition-colors shadow-sm flex items-center justify-between"
+                      >
+                        Yardım / Destek
+                        {hasUnreadSupport && !showSupport && (
+                          <span className="flex h-3 w-3 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                          </span>
+                        )}
+                      </button>
                     </div>
                   )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 w-full md:w-auto pt-2 md:pt-0 border-t border-slate-100 md:border-t-0">
-              <Link to="/privacy-policy" className="text-sm font-medium text-slate-500 hover:text-cyan-600 transition-colors block">
-                Gizlilik Politikası
-              </Link>
-              {/* Mobile links */}
-              <Link to="/guide" className="text-sm font-medium text-cyan-600 hover:text-cyan-700 transition-colors md:hidden block">
-                Rehber
-              </Link>
-              <Link to="/brosur" className="text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors md:hidden block">
-                Broşür
-              </Link>
-              {session && (
-                <div className="relative">
-                  <button 
-                    onClick={() => { setShowSupport(!showSupport); setHasUnreadSupport(false); }} 
-                    className="text-sm font-medium text-cyan-600 hover:text-cyan-700 transition-colors md:hidden block relative"
-                  >
-                    Yardım
-                    {hasUnreadSupport && !showSupport && (
-                      <span className="absolute -top-1 -right-2 flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                      </span>
-                    )}
-                  </button>
                 </div>
               )}
             </div>
@@ -195,6 +204,12 @@ function App() {
               path="/history" 
               element={
                 !session || !hasProfile ? <Navigate to="/" /> : <History session={session} />
+              } 
+            />
+            <Route 
+              path="/tahliller" 
+              element={
+                !session || !hasProfile ? <Navigate to="/" /> : <TestResults session={session} />
               } 
             />
             <Route 
